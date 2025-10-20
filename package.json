@@ -4,7 +4,10 @@
   "description": "A Japanese logic puzzle website where you can solve the same puzzle with others in real time.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:server": "nodemon server/index.js --ignore 'puzzpals-client/'",
+    "start:client": "pnpm --filter puzzpals-client run dev",
+    "dev": "concurrently \"pnpm run start:server\" \"pnpm run start:client\""
   },
   "repository": {
     "type": "git",
@@ -18,9 +21,12 @@
   },
   "homepage": "https://github.com/minghinshi/puzzpals#readme",
   "dependencies": {
+    "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "mongodb": "^6.20.0"
+    "mongodb": "^6.20.0",
+    "nodemon": "^3.1.10",
+    "vue": "^3.5.22"
   }
 }
