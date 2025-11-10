@@ -1,14 +1,17 @@
 {
   "name": "puzzpals-server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www",
+    "devstart": "nodemon ./bin/www"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "cookie-parser": "~1.4.7",
+    "debug": "~4.4.3",
+    "express": "~5.1.0",
+    "morgan": "~1.10.1",
+    "nodemon": "^3.1.10",
+    "vary": "^1.1.2"
   }
 }
