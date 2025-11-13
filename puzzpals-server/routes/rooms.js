@@ -1,0 +1,59 @@
+const express = require('express');
+const Room = require('../models/Room');
+const router = express.Router();
+
+function makeToken(length = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars[bytes[i] % chars.length];
+  }
+  return result;
+}
+
+// Create room
+router.post('/create', async (req, res) => {
+  let token;
+  // Collision check
+  for (let i = 0; i < 5; i++) {
+    token = makeToken(6);
+    const exists = await Room.findOne({ token });
+    if (!exists) break;
+    token = null;
+  }
+  if (!token) return res.status(500).json({ error: 'Could not generate token' });
+
+  const room = new Room({ token });
+  await room.save();
+
+  res.json({
+    token: room.token
+  });
+});
+
+// Get room by token
+router.get('/:token', async (req, res) => {
+  const { token } = req.params;
+  const room = await Room.findOne({ token });
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  res.json({ room });
+});
+
+// Join room
+router.post('/:token/join', async (req, res) => {
+  const { token } = req.params;
+  const room = await Room.findOne({ token });
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  res.json({ room });
+});
+
+// Leave room
+router.post('/:token/leave', async (req, res) => {
+  const { token } = req.params;
+  const room = await Room.findOne({ token });
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  res.json({ room });
+})
+
+module.exports = router;
