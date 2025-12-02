@@ -1,12 +1,16 @@
 <template>
-  <div class="cell" :class="{ colored: cell }" role="button" :aria-pressed="String(cell)" tabindex="0" @click="onClick"
-    @keydown.enter.prevent="onClick" @keydown.space.prevent="onClick"> </div>
+  <div class="cell" role="button" :aria-pressed="String(cell)" tabindex="0" @click="onClick"
+    @keydown.enter.prevent="onClick" @keydown.space.prevent="onClick">
+    {{ cell.symbol }}
+  </div>
 </template>
 
 <script setup>
+import Cell from '@/models/Cell';
+
 const props = defineProps({
   idx: Number,
-  cell: Boolean // Can be a complex Cell object later
+  cell: Cell
 });
 
 const emit = defineEmits(['cellClicked'])
@@ -18,13 +22,16 @@ function onClick() {
 
 <style scoped>
 .cell {
-  aspect-ratio: 1 / 1;
-  background: #f0f0f0;
-  border: 1px solid #d0d0d0;
-  cursor: pointer;
-}
+  aspect-ratio: 1;
 
-.cell.colored {
-  background: #ffeb66;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #ddd;
+  background: v-bind('cell.backgroundColor');
+  color: v-bind('cell.textColor');
+
+  cursor: pointer;
 }
 </style>
