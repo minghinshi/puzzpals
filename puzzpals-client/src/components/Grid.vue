@@ -4,13 +4,14 @@
       gridTemplateColumns: `repeat(${cols}, 1fr)`,
       gridTemplateRows: `repeat(${rows}, 1fr)`
     }">
-      <Cell v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @cell-clicked="onCellClicked" />
+      <CellComponent v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @cell-clicked="onCellClicked" />
     </div>
   </div>
 </template>
 
 <script setup>
-import Cell from "@/components/Cell.vue";
+import CellComponent from "@/components/Cell.vue";
+import Cell from "@/models/Cell";
 import { Socket } from "socket.io-client";
 import { ref } from "vue";
 
@@ -26,14 +27,24 @@ const props = defineProps({
 function applyState(grid) {
   rows.value = grid.rows;
   cols.value = grid.cols;
-  cells.value = grid.cells;
+
+  // Received cells are plain objects, convert then to Cell objects
+  const newCells = [];
+  grid.cells.forEach(cell => {
+    const newCell = new Cell();
+    newCell.setData(cell);
+    newCells.push(newCell);
+  });
+  cells.value = newCells;
 }
 
 function onCellClicked(idx) {
-  cells.value[idx] = !cells.value[idx];
-  const row = Math.floor(idx / cols.value);
-  const col = idx % cols.value;
-  props.socket.emit('grid:updateCell', { token: props.roomToken, row, col, value: cells.value[idx] })
+  if (cells.value[idx].toggleLightBulb()) {
+    // Send the updated cell
+    console.log(cells.value[idx]);
+    
+    props.socket.emit('grid:updateCell', { token: props.roomToken, idx, value: cells.value[idx] })
+  }
 }
 
 props.socket.on('grid:state', grid => {
@@ -41,9 +52,8 @@ props.socket.on('grid:state', grid => {
 });
 
 props.socket.on('grid:cellUpdated', data => {
-  const { row, col, value } = data;
-  const idx = row * cols.value + col;
-  cells.value[idx] = value;
+  const { idx, value } = data;
+  cells.value[idx].setData(value);
 })
 </script>
 

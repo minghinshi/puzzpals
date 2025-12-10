@@ -1,4 +1,6 @@
 module.exports = class Cell {
+  static lightBulbSymbol = "💡";
+
   constructor() {
     this.backgroundColor = "#ffffff";
     this.textColor = "#000000";
@@ -13,5 +15,11 @@ module.exports = class Cell {
     this.backgroundColor = "#000000";
     this.textColor = "#ffffff";
     this.symbol = number.toString();
+  }
+
+  setData(data) {
+    this.backgroundColor = data.backgroundColor;
+    this.textColor = data.textColor;
+    this.symbol = data.symbol;
   }
 }

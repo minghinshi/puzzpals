@@ -16,13 +16,11 @@ function init(io) {
     });
 
     socket.on('grid:updateCell', data => {
-      const { token, row, col, value } = data;
-      const grid = grids.get(token);
-      const idx = row * grid.cols + col;
-      grid.cells[idx] = value;
+      const { token, idx, value } = data;
+      grids.get(token).cells[idx].setData(value);
 
-      // Broadcast
-      socket.to(token).emit('grid:cellUpdated', { row, col, value });
+      // Broadcast the update to clients
+      socket.to(token).emit('grid:cellUpdated', { idx, value });
     })
 
     socket.on('room:leave', data => {
