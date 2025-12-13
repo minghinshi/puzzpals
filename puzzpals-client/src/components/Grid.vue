@@ -4,7 +4,8 @@
       gridTemplateColumns: `repeat(${cols}, 1fr)`,
       gridTemplateRows: `repeat(${rows}, 1fr)`
     }">
-      <CellComponent v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @cell-clicked="onCellClicked" />
+      <CellComponent v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @left-click="onCellClicked"
+        @right-click="onCellRightClicked" />
     </div>
   </div>
 </template>
@@ -40,9 +41,12 @@ function applyState(grid) {
 
 function onCellClicked(idx) {
   if (cells.value[idx].toggleLightBulb()) {
-    // Send the updated cell
-    console.log(cells.value[idx]);
-    
+    props.socket.emit('grid:updateCell', { token: props.roomToken, idx, value: cells.value[idx] })
+  }
+}
+
+function onCellRightClicked(idx) {
+  if (cells.value[idx].toggleNote()) {
     props.socket.emit('grid:updateCell', { token: props.roomToken, idx, value: cells.value[idx] })
   }
 }

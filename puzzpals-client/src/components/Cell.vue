@@ -1,6 +1,6 @@
 <template>
-  <div class="cell" role="button" :aria-pressed="String(cell)" tabindex="0" @click="onClick"
-    @keydown.enter.prevent="onClick" @keydown.space.prevent="onClick">
+  <div class="cell" role="button" :aria-pressed="String(cell)" tabindex="0" @click="onLeftClick"
+    @keydown.enter.prevent="onLeftClick" @keydown.space.prevent="onLeftClick" @contextmenu.prevent="onRightClick">
     {{ cell.symbol }}
   </div>
 </template>
@@ -13,10 +13,14 @@ const props = defineProps({
   cell: Cell
 });
 
-const emit = defineEmits(['cellClicked'])
+const emit = defineEmits(['leftClick', 'rightClick']);
 
-function onClick() {
-  emit('cellClicked', props.idx)
+function onLeftClick() {
+  emit('leftClick', props.idx);
+}
+
+function onRightClick() {
+  emit('rightClick', props.idx);
 }
 </script>
 

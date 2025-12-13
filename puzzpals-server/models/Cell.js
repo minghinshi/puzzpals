@@ -1,6 +1,4 @@
 module.exports = class Cell {
-  static lightBulbSymbol = "💡";
-
   constructor() {
     this.backgroundColor = "#ffffff";
     this.textColor = "#000000";
