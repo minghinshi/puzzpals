@@ -1,23 +1,22 @@
+const NO_INPUT = 2;
+
 module.exports = class Cell {
-  constructor() {
-    this.backgroundColor = "#ffffff";
-    this.textColor = "#000000";
-    this.symbol = "";
-  }
+  isBlack = false;
+  number = null;
+  input = NO_INPUT;
 
   setBlack() {
-    this.backgroundColor = "#000000";
+    this.isBlack = true;
   }
 
   setClue(number) {
-    this.backgroundColor = "#000000";
-    this.textColor = "#ffffff";
-    this.symbol = number.toString();
+    this.isBlack = true;
+    this.number = number;
   }
 
   setData(data) {
-    this.backgroundColor = data.backgroundColor;
-    this.textColor = data.textColor;
-    this.symbol = data.symbol;
+    this.isBlack = data.isBlack;
+    this.number = data.number;
+    this.input = data.input;
   }
 }
