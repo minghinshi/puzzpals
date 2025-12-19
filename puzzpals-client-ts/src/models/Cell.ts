@@ -10,10 +10,14 @@ export const NO_INPUT = 2;
 export default class Cell {
   readonly idx: number;
 
+  // These private variables are only private to TypeScript
+  // The private modifier is stripped when transpiling to JavaScript
+  // Which means Vue can still access them.
   private _isBlack = false;
   private _number: number | null = null;
   private _input = NO_INPUT;
   private _lightLevel = 0;
+  private _adjacentCells = 0;
 
   constructor(idx: number) {
     this.idx = idx;
@@ -49,6 +53,10 @@ export default class Cell {
     this._lightLevel += (increase ? 1 : -1);
   }
 
+  changeAdjacentBulbCount(increase: boolean) {
+    this._adjacentCells += (increase ? 1 : -1);
+  }
+
   get isBlack() {
     return this._isBlack;
   }
@@ -81,7 +89,7 @@ export default class Cell {
   get backgroundColor() {
     if (this._isBlack) {
       return "#000000";
-    } else if (this._lightLevel > 1 && this._input == BULB) {
+    } else if (this._lightLevel > 1 && this._input === BULB) {
       return "#7f0000";
     } else if (this._lightLevel > 0) {
       return "#ffff7f";
@@ -91,7 +99,21 @@ export default class Cell {
   }
 
   get textColor() {
-    return this._isBlack ? "#ffffff" : "#000000";
+    if (!this._isBlack) {
+      return "#000000";
+    } else if (this._number !== null && this._adjacentCells > this._number) {
+      return "#ff7f7f";
+    } else {
+      return "#ffffff";
+    }
+  }
+
+  get isSatisfyRules() {
+    if (this._isBlack) {
+      return this._number === null || this._number === this._adjacentCells;
+    } else {
+      return this._lightLevel > 0 && !(this._lightLevel > 1 && this._input === BULB);
+    }
   }
 
   get state() {

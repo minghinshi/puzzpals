@@ -27,6 +27,8 @@ const props = defineProps({
   roomToken: { type: String, required: true }
 });
 
+let hasWon = false;
+
 function applyState(gridState: GridState) {
   rows.value = gridState.rows;
   cols.value = gridState.cols;
@@ -44,10 +46,10 @@ function applyState(gridState: GridState) {
   cells.value.forEach(cell => {
     // Initialise light levels
     if (cell.hasBulb) {
-      updateLight(cell, true);
+      onBulbChanged(cell);
     }
     // Watch light bulbs get added/removed from Cells, and update light levels
-    watch(() => cell.hasBulb, (wasBulbAdded) => updateLight(cell, wasBulbAdded));
+    watch(() => cell.hasBulb, () => onBulbChanged(cell));
   });
 }
 
@@ -81,9 +83,9 @@ function getCell(idx: number) {
   return cell;
 }
 
-function updateLight(modifiedCell: Cell, wasBulbAdded: boolean) {
+function onBulbChanged(modifiedCell: Cell) {
   // Light itself up
-  modifiedCell.changeLightLevel(wasBulbAdded);
+  modifiedCell.changeLightLevel(modifiedCell.hasBulb);
 
   const [startRow, startCol] = getRowCol(modifiedCell.idx);
   const steps: [number, number][] = [
@@ -94,19 +96,33 @@ function updateLight(modifiedCell: Cell, wasBulbAdded: boolean) {
   ];
 
   for (const [dr, dc] of steps) {
-    // Scan in one direction
     let row = startRow + dr;
     let col = startCol + dc;
+
+    // Update number of adjacent bulbs
+    if (row >= 0 && row < rows.value && col >= 0 && col < cols.value) {
+      const idx = getIdx(row, col);
+      const cell = getCell(idx);
+      cell.changeAdjacentBulbCount(modifiedCell.hasBulb);
+    }
+
+    // Update light levels
     while (row >= 0 && row < rows.value && col >= 0 && col < cols.value) {
       const idx = getIdx(row, col);
       const cell = getCell(idx);
       if (cell.isBlack) {
         break;
       }
-      cell.changeLightLevel(wasBulbAdded);
+      cell.changeLightLevel(modifiedCell.hasBulb);
       row += dr;
       col += dc;
     }
+  }
+
+  // Check victory
+  if (!hasWon && cells.value.every(cell => cell.isSatisfyRules)) {
+    alert("Congratulations! You have solved the puzzle.");
+    hasWon = true;
   }
 }
 
