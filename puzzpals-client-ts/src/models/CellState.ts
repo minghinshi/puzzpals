@@ -1,5 +1,5 @@
 export default interface CellState {
   isBlack: boolean,
-  number: number,
+  number: number | null,
   input: number;
 }

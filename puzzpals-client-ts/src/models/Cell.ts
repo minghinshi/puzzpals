@@ -1,7 +1,7 @@
 import type CellState from "./CellState";
 
-const bulbText = '💡';
-const dotText = '·';
+export const bulbText = '💡';
+export const dotText = '·';
 
 export const BULB = 0;
 export const DOT = 1;
@@ -10,9 +10,6 @@ export const NO_INPUT = 2;
 export default class Cell {
   readonly idx: number;
 
-  // These private variables are only private to TypeScript
-  // The private modifier is stripped when transpiling to JavaScript
-  // Which means Vue can still access them.
   private _isBlack = false;
   private _number: number | null = null;
   private _input = NO_INPUT;
