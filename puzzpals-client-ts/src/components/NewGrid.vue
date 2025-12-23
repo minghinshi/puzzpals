@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, type Ref } from "vue";
+import { onBeforeMount, ref, watch, type Ref } from "vue";
 
 import CellComponent from "@/components/Cell.vue";
 import Cell from "@/models/Cell";
@@ -24,34 +24,11 @@ const props = defineProps<{
 
 const emit = defineEmits(['cellUpdated']);
 
-const cells = ref(initialiseCells()) as Ref<Cell[]>;
+const cells: Ref<Cell[]> = ref([]);
 
 const rows = props.gridState.rows;
 const cols = props.gridState.cols;
 let hasWon = false;
-
-function initialiseCells() {
-  const cells: Cell[] = [];
-
-  // Convert CellStates to Cell objects
-  props.gridState.cells.forEach((cellState, idx) => {
-    const cell = new Cell(idx);
-    cell.setState(cellState);
-    cells.push(cell);
-  });
-
-  // Calculate light levels
-  cells.forEach(cell => {
-    // Initialise light levels
-    if (cell.hasBulb) {
-      onBulbChanged(cell);
-    }
-    // Watch light bulbs get added/removed from Cells, and update light levels
-    watch(() => cell.hasBulb, () => onBulbChanged(cell));
-  });
-
-  return cells;
-}
 
 function onCellClicked(cell: Cell) {
   if (cell.toggleLightBulb()) {
@@ -132,6 +109,25 @@ function onBulbChanged(modifiedCell: Cell) {
 }
 
 defineExpose({ onCellUpdated });
+
+onBeforeMount(() => {
+  // Convert CellStates to Cell objects
+  props.gridState.cells.forEach((cellState, idx) => {
+    const cell = new Cell(idx);
+    cell.setState(cellState);
+    cells.value.push(cell);
+  });
+
+  // Calculate light levels
+  cells.value.forEach(cell => {
+    // Initialise light levels
+    if (cell.hasBulb) {
+      onBulbChanged(cell);
+    }
+    // Watch light bulbs get added/removed from Cells, and update light levels
+    watch(() => cell.hasBulb, () => onBulbChanged(cell));
+  });
+});
 </script>
 
 <style scoped>
