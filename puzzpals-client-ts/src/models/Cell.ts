@@ -58,8 +58,20 @@ export default class Cell {
     return this._isBlack;
   }
 
+  get isLit() {
+    return this._lightLevel > 0;
+  }
+
   get hasBulb() {
     return this._input === BULB;
+  }
+
+  get hasBulbError() {
+    return this._input === BULB && this._lightLevel > 1;
+  }
+
+  get hasNumberError() {
+    return this._number !== null && this._adjacentCells > this._number;
   }
 
   get text() {
@@ -83,33 +95,11 @@ export default class Cell {
     }
   }
 
-  get backgroundColor() {
-    if (this._isBlack) {
-      return "#000000";
-    } else if (this._lightLevel > 1 && this._input === BULB) {
-      return "#7f0000";
-    } else if (this._lightLevel > 0) {
-      return "#ffff7f";
-    } else {
-      return "#ffffff";
-    }
-  }
-
-  get textColor() {
-    if (!this._isBlack) {
-      return "#000000";
-    } else if (this._number !== null && this._adjacentCells > this._number) {
-      return "#ff7f7f";
-    } else {
-      return "#ffffff";
-    }
-  }
-
   get isSatisfyRules() {
     if (this._isBlack) {
       return this._number === null || this._number === this._adjacentCells;
     } else {
-      return this._lightLevel > 0 && !(this._lightLevel > 1 && this._input === BULB);
+      return this._lightLevel > 0 && !this.hasBulbError;
     }
   }
 
