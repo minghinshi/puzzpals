@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { mount, VueWrapper } from "@vue/test-utils";
+import { describe, expect, it } from "vitest";
 
-import Grid from "@/components/NewGrid.vue";
-import { bulbText, dotText, NO_INPUT, BULB, DOT } from "@/models/Cell";
+import Grid from "@/components/Grid.vue";
+import { BULB, bulbText, DOT, dotText, NO_INPUT } from "@/models/Cell";
 import type CellState from "@/models/CellState";
 import type GridState from "@/models/GridState";
 

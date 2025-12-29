@@ -1,8 +1,8 @@
 <template>
   <div class="grid-wrapper">
     <div class="grid" :style="{
-      gridTemplateColumns: `repeat(${cols}, 1fr)`,
-      gridTemplateRows: `repeat(${rows}, 1fr)`
+      gridTemplateColumns: `repeat(${gridState.cols}, 1fr)`,
+      gridTemplateRows: `repeat(${gridState.rows}, 1fr)`
     }">
       <CellComponent v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @left-click="onCellClicked"
         @right-click="onCellRightClicked" />
@@ -11,68 +11,50 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeMount, ref, watch, type Ref } from "vue";
+
 import CellComponent from "@/components/Cell.vue";
 import Cell from "@/models/Cell";
 import type CellState from "@/models/CellState";
 import type GridState from "@/models/GridState";
-import { Socket } from "socket.io-client";
-import { ref, watch, type Ref } from "vue";
 
-const rows: Ref<number> = ref(-1);
-const cols: Ref<number> = ref(-1);
+const props = defineProps<{
+  gridState: GridState;
+}>();
+
+const emit = defineEmits(['updateCell']);
+
 const cells: Ref<Cell[]> = ref([]);
 
-const props = defineProps({
-  socket: { type: Socket, required: true },
-  roomToken: { type: String, required: true }
-});
-
+const rows = props.gridState.rows;
+const cols = props.gridState.cols;
 let hasWon = false;
-
-function applyState(gridState: GridState) {
-  rows.value = gridState.rows;
-  cols.value = gridState.cols;
-
-  // Received cells are plain objects, convert then to Cell objects
-  const newCells: Cell[] = [];
-  gridState.cells.forEach((cellState, idx) => {
-    const cell = new Cell(idx);
-    cell.setState(cellState);
-    newCells.push(cell);
-  });
-  cells.value = newCells;
-
-  // Grid is now ready, calculate light levels
-  cells.value.forEach(cell => {
-    // Initialise light levels
-    if (cell.hasBulb) {
-      onBulbChanged(cell);
-    }
-    // Watch light bulbs get added/removed from Cells, and update light levels
-    watch(() => cell.hasBulb, () => onBulbChanged(cell));
-  });
-}
 
 function onCellClicked(cell: Cell) {
   if (cell.toggleLightBulb()) {
-    props.socket.emit('grid:updateCell', { token: props.roomToken, idx: cell.idx, value: cell.state });
+    emit('updateCell', cell.idx, cell.state);
   }
 }
 
 function onCellRightClicked(cell: Cell) {
   if (cell.toggleNote()) {
-    props.socket.emit('grid:updateCell', { token: props.roomToken, idx: cell.idx, value: cell.state });
+    emit('updateCell', cell.idx, cell.state);
   }
 }
 
+function onCellUpdated(idx: number, cellState: CellState) {
+  const cell = getCell(idx);
+  cell.setState(cellState);
+}
+
 function getRowCol(idx: number): [number, number] {
-  const row = Math.floor(idx / cols.value);
-  const col = idx % cols.value;
+  const row = Math.floor(idx / cols);
+  const col = idx % cols;
   return [row, col];
 }
 
 function getIdx(row: number, col: number) {
-  return row * cols.value + col;
+  return row * cols + col;
 }
 
 function getCell(idx: number) {
@@ -100,14 +82,14 @@ function onBulbChanged(modifiedCell: Cell) {
     let col = startCol + dc;
 
     // Update number of adjacent bulbs
-    if (row >= 0 && row < rows.value && col >= 0 && col < cols.value) {
+    if (row >= 0 && row < rows && col >= 0 && col < cols) {
       const idx = getIdx(row, col);
       const cell = getCell(idx);
       cell.changeAdjacentBulbCount(modifiedCell.hasBulb);
     }
 
     // Update light levels
-    while (row >= 0 && row < rows.value && col >= 0 && col < cols.value) {
+    while (row >= 0 && row < rows && col >= 0 && col < cols) {
       const idx = getIdx(row, col);
       const cell = getCell(idx);
       if (cell.isBlack) {
@@ -126,13 +108,25 @@ function onBulbChanged(modifiedCell: Cell) {
   }
 }
 
-props.socket.on('grid:state', (data: GridState) => {
-  applyState(data);
-});
+defineExpose({ onCellUpdated });
 
-props.socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {
-  const cell = getCell(data.idx);
-  cell.setState(data.value);
+onBeforeMount(() => {
+  // Convert CellStates to Cell objects
+  props.gridState.cells.forEach((cellState, idx) => {
+    const cell = new Cell(idx);
+    cell.setState(cellState);
+    cells.value.push(cell);
+  });
+
+  // Calculate light levels
+  cells.value.forEach(cell => {
+    // Initialise light levels
+    if (cell.hasBulb) {
+      onBulbChanged(cell);
+    }
+    // Watch light bulbs get added/removed from Cells, and update light levels
+    watch(() => cell.hasBulb, () => onBulbChanged(cell));
+  });
 });
 </script>
 

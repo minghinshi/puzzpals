@@ -1,36 +1,36 @@
 <template>
-  <div v-if="!room">Joining room...</div>
+  <div v-if="!gridState">Joining room...</div>
   <div v-else>
-    <h2>Room {{ room.token }}</h2>
+    <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
-    <Grid :socket="socket" :room-token="token"/>
+    <Grid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted, onBeforeUnmount, type Ref, useTemplateRef } from 'vue';
+import { useRouter } from 'vue-router';
+
 import api from '@/services/api';
-import { io } from 'socket.io-client';
+import { socket } from '@/socket';
+
 import Grid from '@/components/Grid.vue';
+import type GridState from '@/models/GridState';
+import type CellState from '@/models/CellState';
 
-const route = useRoute();
 const router = useRouter();
-const token = getTokenFromRoute();
-const room: Ref<{token: string} | null> = ref(null);
-const socket = io(import.meta.env.VITE_API_WS);
 
-function getTokenFromRoute() {
-  const token = route.params.token;
-  if (typeof token !== "string") {
-    throw new Error(`Token is parsed incorrectly (expected string, got ${typeof token})`);
-  }
-  return token;
-}
+const room: Ref<{ token: string; } | null> = ref(null);
+const gridState: Ref<GridState | null> = ref(null);
+const gridComponent = useTemplateRef("gridComponent");
+
+const props = defineProps({
+  token: { type: String, required: true }
+});
 
 async function fetchRoom() {
   try {
-    const res = await api.get(`/rooms/${token}`);
+    const res = await api.get(`/rooms/${props.token}`);
     room.value = res.data.room;
   } catch (err) {
     console.error(err);
@@ -39,16 +39,32 @@ async function fetchRoom() {
 }
 
 async function join() {
-  const res = await api.post(`/rooms/${token}/join`);
+  const res = await api.post(`/rooms/${props.token}/join`);
   room.value = res.data.room;
-  socket.emit('room:join', { token });
+  socket.emit('room:join', { token: props.token });
 }
 
 async function leave() {
-  await api.post(`/rooms/${token}/leave`);
-  socket.emit('room:leave', { token });
+  await api.post(`/rooms/${props.token}/leave`);
+  socket.emit('room:leave', { token: props.token });
   router.push('/');
 }
+
+function onCellUpdated(idx: number, value: CellState) {
+  socket.emit('grid:updateCell', { token: props.token, idx, value });
+}
+
+socket.on('grid:state', (data: GridState) => {
+  gridState.value = data;
+});
+
+socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {
+  if (gridComponent.value === null) {
+    throw new Error("Grid is missing");
+  }
+  const { idx, value } = data;
+  gridComponent.value.onCellUpdated(idx, value);
+});
 
 onMounted(async () => {
   await fetchRoom();

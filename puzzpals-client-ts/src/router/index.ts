@@ -6,7 +6,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', component: Home },
-    { path: '/room/:token', component: RoomPage }
+    { path: '/room/:token', component: RoomPage, props: true }
   ]
 });
 
