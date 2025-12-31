@@ -1,39 +1,35 @@
 #!/usr/bin/env node
 
-/**
- * Load environment variables.
- */
+// Load environment variables
+import 'dotenv/config';
 
-require('dotenv').config();
+function assertEnvExists(variable: string | undefined, name: string): asserts variable is string {
+  if (variable === undefined) {
+    throw new Error(`The .env variable ${name} is missing`);
+  }
+}
 
-/**
- * Module dependencies.
- */
+assertEnvExists(process.env.PORT, "PORT");
+assertEnvExists(process.env.MONGO_URI, "MONGO_URI");
+assertEnvExists(process.env.CLIENT_BASE_URL, "CLIENT_BASE_URL");
 
-const app = require('../app');
-const debug = require('debug')('puzzpals-server:server');
-const http = require('http');
+import debug from 'debug';
+import { createServer } from 'http';
+import { connect } from 'mongoose';
+import { Server } from 'socket.io';
+import app from '../app.js';
+import init from '../socket.js';
 
-/**
- * Get port from environment and store in Express.
- */
+const serverDebugger = debug('puzzpals-server:server');
 
+// Get port from environment and store in Express
 const port = normalizePort(process.env.PORT);
 app.set('port', port);
 
-/**
- * Create HTTP server.
- */
+// Create HTTP server
+const server = createServer(app);
 
-const server = http.createServer(app);
-
-/**
- * Create Socket.IO server.
- */
-
-const { Server } = require('socket.io');
-const { init } = require('../socket');
-
+// Create Socket.IO server
 const io = new Server(server, {
   cors: {
     origin: [process.env.CLIENT_BASE_URL]
@@ -43,18 +39,10 @@ const io = new Server(server, {
 app.set('io', io);
 init(io);
 
-/**
- * Connect to Mongoose.
- */
+// Connect to Mongoose
+connect(process.env.MONGO_URI);
 
-const mongoose = require('mongoose');
-const mongo = process.env.MONGO_URI;
-mongoose.connect(mongo);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
+// Listen on provided port, on all network interfaces
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
@@ -63,7 +51,7 @@ server.on('listening', onListening);
  * Normalize a port into a number, string, or false.
  */
 
-function normalizePort(val) {
+function normalizePort(val: string) {
   const port = parseInt(val, 10);
 
   if (isNaN(port)) {
@@ -83,7 +71,7 @@ function normalizePort(val) {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
+function onError(error: NodeJS.ErrnoException) {
   if (error.syscall !== 'listen') {
     throw error;
   }
@@ -113,6 +101,6 @@ function onListening() {
   const addr = server.address();
   const bind = typeof addr === 'string'
     ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+    : 'port ' + addr!.port;
+  serverDebugger('Listening on ' + bind);
 }

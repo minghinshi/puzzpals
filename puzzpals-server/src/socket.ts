@@ -1,6 +1,7 @@
-const { grids, createEmptyGrid } = require('./grid.js')
+import type { Server } from 'socket.io';
+import { createEmptyGrid, grids } from './grid.js';
 
-function init(io) {
+function init(io: Server) {
   io.on('connection', socket => {
     socket.on('room:join', data => {
       const token = data.token
@@ -30,4 +31,4 @@ function init(io) {
   })
 }
 
-module.exports = { init };
+export default init;
