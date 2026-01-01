@@ -32,17 +32,16 @@ const server = http.createServer(app);
  */
 
 const { Server } = require('socket.io');
-const io = new Server(server);
-app.set('io', io)
+const { init } = require('../socket');
 
-io.on('connection', socket => {
-  socket.on('join-room-socket', ({ token }) => {
-    socket.join(token);
-  });
-  socket.on('leave-room-socket', ({ token }) => {
-    socket.leave(token);
-  });
+const io = new Server(server, {
+  cors: {
+    origin: [process.env.CLIENT_BASE_URL]
+  }
 });
+
+app.set('io', io);
+init(io);
 
 /**
  * Connect to Mongoose.
@@ -98,11 +97,9 @@ function onError(error) {
     case 'EACCES':
       console.error(bind + ' requires elevated privileges');
       process.exit(1);
-      break;
     case 'EADDRINUSE':
       console.error(bind + ' is already in use');
       process.exit(1);
-      break;
     default:
       throw error;
   }

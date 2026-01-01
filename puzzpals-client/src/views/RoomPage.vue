@@ -3,6 +3,7 @@
   <div v-else>
     <h2>Room {{ room.token }}</h2>
     <button @click="leave">Leave</button>
+    <Grid :socket="socket" :room-token="token"/>
   </div>
 </template>
 
@@ -11,6 +12,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
 import { io } from 'socket.io-client';
+import Grid from '@/components/Grid.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -31,12 +33,12 @@ async function fetchRoom() {
 async function join() {
   const res = await api.post(`/rooms/${token}/join`);
   room.value = res.data.room;
-  socket.emit('join-room-socket', { token });
+  socket.emit('room:join', { token });
 }
 
 async function leave() {
   await api.post(`/rooms/${token}/leave`);
-  socket.emit('leave-room-socket', { token });
+  socket.emit('room:leave', { token });
   router.push('/');
 }
 
