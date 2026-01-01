@@ -81,6 +81,6 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  socket.disconnect();
+  socket.emit('room:leave', { token: props.token });
 });
 </script>
