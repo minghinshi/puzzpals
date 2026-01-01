@@ -82,5 +82,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   socket.disconnect();
+  socket.off("grid:state");
+  socket.off("grid:cellUpdated");
 });
 </script>
