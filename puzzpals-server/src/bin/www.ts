@@ -104,3 +104,5 @@ function onListening() {
     : 'port ' + addr!.port;
   serverDebugger('Listening on ' + bind);
 }
+
+console.log('Server loaded');
