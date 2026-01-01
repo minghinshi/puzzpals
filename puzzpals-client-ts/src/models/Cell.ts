@@ -95,7 +95,7 @@ export default class Cell {
     }
   }
 
-  get isSatisfyRules() {
+  get isRuleSatisfied() {
     if (this._isBlack) {
       return this._number === null || this._number === this._adjacentCells;
     } else {
