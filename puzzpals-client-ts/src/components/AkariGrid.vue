@@ -4,7 +4,7 @@
       gridTemplateColumns: `repeat(${gridState.cols}, 1fr)`,
       gridTemplateRows: `repeat(${gridState.rows}, 1fr)`
     }">
-      <CellComponent v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @left-click="onCellClicked"
+      <AkariCell v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @left-click="onCellClicked"
         @right-click="onCellRightClicked" />
     </div>
   </div>
@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { onBeforeMount, ref, watch, type Ref } from "vue";
 
-import CellComponent from "@/components/Cell.vue";
+import AkariCell from "@/components/AkariCell.vue";
 import Cell from "@/models/Cell";
 import type CellState from "@/models/CellState";
 import type GridState from "@/models/GridState";

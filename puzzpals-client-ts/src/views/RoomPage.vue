@@ -3,7 +3,7 @@
   <div v-else>
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
-    <Grid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
+    <AkariGrid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
   </div>
 </template>
 
@@ -14,7 +14,7 @@ import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import { socket } from '@/socket';
 
-import Grid from '@/components/Grid.vue';
+import AkariGrid from '@/components/AkariGrid.vue';
 import type GridState from '@/models/GridState';
 import type CellState from '@/models/CellState';
 
