@@ -102,7 +102,7 @@ function onBulbChanged(modifiedCell: Cell) {
   }
 
   // Check victory
-  if (!hasWon && cells.value.every(cell => cell.isSatisfyRules)) {
+  if (!hasWon && cells.value.every(cell => cell.isRuleSatisfied)) {
     alert("Congratulations! You have solved the puzzle.");
     hasWon = true;
   }
