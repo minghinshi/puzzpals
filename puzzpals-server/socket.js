@@ -3,7 +3,9 @@ const { grids, createEmptyGrid } = require('./grid.js')
 function init(io) {
   io.on('connection', socket => {
     socket.on('room:join', data => {
-      const token = data.token
+
+      const token = data.token;
+      console.log("joined");
       socket.join(token);
 
       let grid = grids.get(token);
@@ -23,10 +25,13 @@ function init(io) {
       socket.to(token).emit('grid:cellUpdated', { idx, value });
     })
 
-    socket.on('room:leave', data => {
+    const handleDisconnect = data => {
       const token = data.token
       socket.leave(token);
-    });
+    }
+
+    socket.on('room:leave', handleDisconnect);
+    socket.on('disconnect', handleDisconnect);
   })
 }
 

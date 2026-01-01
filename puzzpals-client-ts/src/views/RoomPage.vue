@@ -54,20 +54,29 @@ function onCellUpdated(idx: number, value: CellState) {
   socket.emit('grid:updateCell', { token: props.token, idx, value });
 }
 
-socket.on('grid:state', (data: GridState) => {
-  gridState.value = data;
-});
-
-socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {
-  if (gridComponent.value === null) {
-    throw new Error("Grid is missing");
+function initiateSocket() {
+  if (!socket.connected) {
+    socket.connect();
   }
-  const { idx, value } = data;
-  gridComponent.value.onCellUpdated(idx, value);
-});
+
+  socket.on('grid:state', (data: GridState) => {
+    gridState.value = data;
+  });
+
+  socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {
+    if (gridComponent.value === null) {
+      throw new Error("Grid is missing");
+    }
+    const { idx, value } = data;
+    gridComponent.value.onCellUpdated(idx, value);
+  });
+}
 
 onMounted(async () => {
+  initiateSocket();
+
   await fetchRoom();
+  console.log(`Joining room ${props.token}`);
   await join();
 });
 
