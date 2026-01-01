@@ -1,5 +1,5 @@
 <template>
-  <div class="cell" role="button" :aria-pressed="String(cell)" tabindex="0" @click="onLeftClick"
+  <div class="cell" role="button" :aria-pressed="String(cell.input === BULB)" tabindex="0" @click="onLeftClick"
     @keydown.enter.prevent="onLeftClick" @keydown.space.prevent="onLeftClick" @contextmenu.prevent="onRightClick">
     {{ text }}
   </div>

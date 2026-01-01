@@ -81,7 +81,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  socket.disconnect();
+  socket.emit('room:leave', { token: props.token });
   socket.off("grid:state");
   socket.off("grid:cellUpdated");
 });
