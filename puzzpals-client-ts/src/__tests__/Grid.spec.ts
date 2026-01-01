@@ -1,7 +1,7 @@
 import { mount, VueWrapper } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
-import Grid from "@/components/Grid.vue";
+import Grid from "@/components/AkariGrid.vue";
 import { BULB, bulbText, DOT, dotText, NO_INPUT } from "@/models/Cell";
 import type CellState from "@/models/CellState";
 import type GridState from "@/models/GridState";

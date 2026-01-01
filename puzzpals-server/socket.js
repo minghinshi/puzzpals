@@ -19,19 +19,25 @@ function init(io) {
 
     socket.on('grid:updateCell', data => {
       const { token, idx, value } = data;
+      const grid = grids.get(token);
+
+      if (!grid) {
+        return;
+      }
+
       grids.get(token).cells[idx].setData(value);
 
       // Broadcast the update to clients
       socket.to(token).emit('grid:cellUpdated', { idx, value });
-    })
+    });
 
     const handleDisconnect = data => {
       const token = data.token
       socket.leave(token);
     }
 
-    socket.on('room:leave', handleDisconnect);
-    socket.on('disconnect', handleDisconnect);
+    socket.on('room:leave', data => handleDisconnect(data));
+    socket.on('disconnect', data => handleDisconnect(data));
   })
 }
 

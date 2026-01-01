@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import CellComponent from "@/components/Cell.vue";
+import CellComponent from "@/components/AkariCell.vue";
 import Cell from "@/models/Cell";
 import { Socket } from "socket.io-client";
 import { ref } from "vue";
@@ -29,7 +29,7 @@ function applyState(grid) {
   rows.value = grid.rows;
   cols.value = grid.cols;
 
-  // Received cells are plain objects, convert then to Cell objects
+  // Received cells are plain objects, convert them to Cell objects
   const newCells = [];
   grid.cells.forEach(cell => {
     const newCell = new Cell();
