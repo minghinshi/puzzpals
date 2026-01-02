@@ -1,5 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
+import json from '@rollup/plugin-json';
 import dts from 'rollup-plugin-dts';
 
 export default [
@@ -8,6 +9,7 @@ export default [
     input: 'src/index.ts',
     plugins: [
       resolve(),
+      json(),
       typescript({ tsconfig: './tsconfig.json', declaration: true })
     ],
     output: [
