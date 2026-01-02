@@ -8,15 +8,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, type Ref, useTemplateRef } from 'vue';
+import { onBeforeMount, onBeforeUnmount, onMounted, ref, type Ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 
 import api from '@/services/api';
 import { socket } from '@/socket';
 
 import AkariGrid from '@/components/AkariGrid.vue';
-import type GridState from '@/models/GridState';
 import type CellState from '@/models/CellState';
+import type GridState from '@/models/GridState';
 
 const router = useRouter();
 
@@ -55,10 +55,6 @@ function onCellUpdated(idx: number, value: CellState) {
 }
 
 function initiateSocket() {
-  if (!socket.connected) {
-    socket.connect();
-  }
-
   socket.on('grid:state', (data: GridState) => {
     gridState.value = data;
   });
@@ -72,9 +68,9 @@ function initiateSocket() {
   });
 }
 
-onMounted(async () => {
-  initiateSocket();
+onBeforeMount(initiateSocket);
 
+onMounted(async () => {
   await fetchRoom();
   console.log(`Joining room ${props.token}`);
   await join();
