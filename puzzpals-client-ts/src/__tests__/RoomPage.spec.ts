@@ -2,13 +2,15 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-import { socket } from "@/__mocks__/socket";
+import socket from "@/__mocks__/socket";
+import api from "@/__mocks__/api";
 
 import { BULB, bulbText, NO_INPUT } from "@/models/Cell";
 import type GridState from "@/models/GridState";
 import RoomPage from "@/views/RoomPage.vue";
 
-vi.mock('@/socket', () => ({ socket }));
+vi.mock('@/socket', () => { return { default: socket }; });
+vi.mock('@/services/api', () => { return { default: api }; });
 
 describe('RoomPage', () => {
   const gridState: GridState = {

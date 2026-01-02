@@ -12,7 +12,7 @@ import { onBeforeMount, onBeforeUnmount, onMounted, ref, type Ref, useTemplateRe
 import { useRouter } from 'vue-router';
 
 import api from '@/services/api';
-import { socket } from '@/socket';
+import socket from '@/socket';
 
 import AkariGrid from '@/components/AkariGrid.vue';
 import type CellState from '@/models/CellState';

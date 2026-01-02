@@ -16,7 +16,7 @@ let latestEvent: {
   payload: any;
 } | null = null;
 
-export const socket: MockSocket = {
+const socket: MockSocket = {
   on: (ev, cb) => {
     handlers[ev] = (handlers[ev] || []);
     handlers[ev].push(cb);
@@ -36,3 +36,5 @@ export const socket: MockSocket = {
 
   getLatestEvent: () => latestEvent
 };
+
+export default socket;
