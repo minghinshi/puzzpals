@@ -11,6 +11,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
+import config from '@/config';
 import { io } from 'socket.io-client';
 import Grid from '@/components/Grid.vue';
 
@@ -18,7 +19,7 @@ const route = useRoute();
 const router = useRouter();
 const token = route.params.token;
 const room = ref(null);
-const socket = io(import.meta.env.VITE_API_WS);
+const socket = io(config.apiWs);
 
 async function fetchRoom() {
   try {
