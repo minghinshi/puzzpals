@@ -18,24 +18,26 @@ const clientEvents: {
 }[] = [];
 
 const socket: MockSocket = {
-  on: (ev, cb) => {
+  on(ev, cb) {
     handlers[ev] = (handlers[ev] || []);
     handlers[ev].push(cb);
     console.log(`Added listener for ${ev.toString()}`);
   },
 
-  emit: (ev, payload) => {
+  emit(ev, payload) {
     clientEvents.push({ ev, payload });
     console.log(`Received client event ${ev.toString()}`);
   },
 
   // Called by tests
-  emitServerEvent: (ev, payload) => {
+  emitServerEvent(ev, payload) {
     handlers[ev]?.forEach(fn => fn(payload));
     console.log(`Emitted server event ${ev.toString()}`);
   },
 
-  hasReceived: (ev, payload) => clientEvents.includes({ ev, payload })
+  hasReceived(ev, payload) {
+    return clientEvents.includes({ ev, payload });
+  }
 };
 
 export default socket;

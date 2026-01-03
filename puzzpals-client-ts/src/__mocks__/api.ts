@@ -10,7 +10,7 @@ interface MockResponse {
 }
 
 const api: MockApi = {
-  get: async (url) => {
+  async get(url) {
     switch (url) {
       case '/rooms/TestRm':
         return { data: { room: 'TestRm' } };
@@ -19,7 +19,7 @@ const api: MockApi = {
     }
   },
 
-  post: async (url) => {
+  async post(url) {
     switch (url) {
       case '/rooms/TestRm/join':
         return { data: { room: 'TestRm' } };
