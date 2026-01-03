@@ -4,15 +4,16 @@ interface MockSocket {
   on: (ev: SocketEvent, cb: Function) => void;
   emit: (ev: SocketEvent, payload: any) => void;
 
+  reset: () => void;
   emitServerEvent: (ev: SocketEvent, payload: any) => void;
   hasReceived: (ev: SocketEvent, payload: any) => boolean;
 }
 
-const handlers: {
+let handlers: {
   [ev: SocketEvent]: Function[];
 } = {};
 
-const clientEvents: {
+let clientEvents: {
   ev: SocketEvent,
   payload: any;
 }[] = [];
@@ -30,6 +31,11 @@ const socket: MockSocket = {
   },
 
   // Called by tests
+  reset() {
+    handlers = {};
+    clientEvents = [];
+  },
+
   emitServerEvent(ev, payload) {
     handlers[ev]?.forEach(fn => fn(payload));
     console.log(`Emitted server event ${ev.toString()}`);

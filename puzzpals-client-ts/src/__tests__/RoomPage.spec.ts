@@ -1,5 +1,5 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import socket from "@/__mocks__/socket";
@@ -26,6 +26,8 @@ describe('RoomPage', () => {
       input: BULB
     }]
   };
+
+  beforeEach(socket.reset);
 
   // As a player, I want to synchronise my progress with other players
   // so that we can collaborate on the same puzzle.
