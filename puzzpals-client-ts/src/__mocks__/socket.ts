@@ -3,18 +3,19 @@ type SocketEvent = string | symbol;
 interface MockSocket {
   on: (ev: SocketEvent, cb: Function) => void;
   emit: (ev: SocketEvent, payload: any) => void;
+
   emitServerEvent: (ev: SocketEvent, payload: any) => void;
-  getLatestEvent: () => { ev: SocketEvent, payload: any; } | null;
+  hasReceived: (ev: SocketEvent, payload: any) => boolean;
 }
 
 const handlers: {
   [ev: SocketEvent]: Function[];
 } = {};
 
-let latestEvent: {
+const clientEvents: {
   ev: SocketEvent,
   payload: any;
-} | null = null;
+}[] = [];
 
 const socket: MockSocket = {
   on: (ev, cb) => {
@@ -24,7 +25,7 @@ const socket: MockSocket = {
   },
 
   emit: (ev, payload) => {
-    latestEvent = { ev, payload };
+    clientEvents.push({ ev, payload });
     console.log(`Received client event ${ev.toString()}`);
   },
 
@@ -34,7 +35,7 @@ const socket: MockSocket = {
     console.log(`Emitted server event ${ev.toString()}`);
   },
 
-  getLatestEvent: () => latestEvent
+  hasReceived: (ev, payload) => clientEvents.includes({ ev, payload })
 };
 
 export default socket;

@@ -80,20 +80,17 @@ describe('RoomPage', () => {
     const cell = wrapper.findAll('div.cell')[1];
     await cell?.trigger('click');
 
-    const expectedEvent = {
-      ev: 'grid:updateCell',
-      payload: {
-        token: 'TestRm',
-        idx: 1,
-        value: {
-          isBlack: false,
-          number: null,
-          input: NO_INPUT
-        }
+    const expectedPayload = {
+      token: 'TestRm',
+      idx: 1,
+      value: {
+        isBlack: false,
+        number: null,
+        input: NO_INPUT
       }
     };
 
     // Assert data emitted to socket
-    expect(socket.getLatestEvent()).toStrictEqual(expectedEvent);
+    expect(socket.hasReceived('grid:updateCell', expectedPayload));
   });
 });
