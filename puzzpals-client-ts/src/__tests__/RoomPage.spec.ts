@@ -1,4 +1,4 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
@@ -27,10 +27,48 @@ describe('RoomPage', () => {
     }]
   };
 
-  beforeEach(socket.reset);
+  beforeEach(() => {
+    vi.clearAllMocks();
+    socket.reset();
+  });
 
   // As a player, I want to synchronise my progress with other players
   // so that we can collaborate on the same puzzle.
+  it('joins room', async () => {
+    // Load the room page with 'TestRm' as token
+    mount(RoomPage, { props: { token: 'TestRm' } });
+    await flushPromises();
+
+    // Server receives request to join room
+    expect(socket.emit).toHaveBeenCalledWith('room:join', { token: 'TestRm' });
+  });
+
+  it('leaves room when button pressed', async () => {
+    const wrapper = mount(RoomPage, { props: { token: 'TestRm' } });
+    await flushPromises();
+
+    socket.emitServerEvent('grid:state', gridState);
+    await nextTick();
+
+    // Click leave room button
+    wrapper.find('button').trigger('click');
+    await flushPromises();
+
+    // Server receives request to leave room
+    expect(socket.emit).toHaveBeenCalledWith('room:leave', { token: 'TestRm' });
+  });
+
+  it('leaves room when leaving page', async () => {
+    const wrapper = mount(RoomPage, { props: { token: 'TestRm' } });
+    await flushPromises();
+
+    // Leave page by changing URL
+    wrapper.unmount();
+
+    // Server receives request to leave room
+    expect(socket.emit).toHaveBeenCalledWith('room:leave', { token: 'TestRm' });
+  });
+
   it('synchronises your grid upon entering room', async () => {
     const wrapper = mount(RoomPage, { props: { token: 'TestRm' } });
 
@@ -93,6 +131,6 @@ describe('RoomPage', () => {
     };
 
     // Assert data emitted to socket
-    expect(socket.hasReceived('grid:updateCell', expectedPayload));
+    expect(socket.emit).toHaveBeenCalledWith('grid:updateCell', expectedPayload);
   });
 });
