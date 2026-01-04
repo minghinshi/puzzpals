@@ -5,7 +5,7 @@
         v-for="(msg, i) in messages"
         :key="i"
         class="chat-message"
-        :class="{ 'my-message': msg.user === pseudoID, 'other-message': msg.user !== pseudoID }"
+        :class="{ 'my-message': msg.user === props.userID, 'other-message': msg.user !== props.userID }"
       >
         <div class="bubble">
           <div class="chat-header">
@@ -29,10 +29,9 @@
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import type { ChatMessage } from '@/models/ChatState';
 
-const props = defineProps<{ chatState: { messages: ChatMessage[] } }>();
+const props = defineProps<{ chatState: { messages: ChatMessage[] }, userID: string | null }>();
 const emit = defineEmits(['newMessage']);
 const input = ref('');
-const pseudoID = 'user123'; // TODO: Replace with actual user ID later
 const chatWindowRef = ref<HTMLElement | null>(null);
 const messages = ref<ChatMessage[]>(props.chatState.messages);
 
@@ -43,7 +42,7 @@ function send() {
   console.log(text)
   if (text) {
     const message = {
-      user: pseudoID, // Replace with actual user ID if available
+      user: "",
       msgtext: text,
       timestamp: Date.now()
     };

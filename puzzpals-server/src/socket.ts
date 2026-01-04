@@ -1,13 +1,15 @@
 import type { Server } from 'socket.io';
 import { createEmptyGrid, grids } from './grid.js';
 import { pushMessage, fetchChatRecords } from './chat.js';
+import { randomUserID } from './user.js';
 
 function init(io: Server) {
   io.on('connection', socket => {
     socket.on('room:join', data => {
 
       const token = data.token;
-      console.log("joined");
+      const userID = randomUserID(token);
+      console.log("joined", userID);
       socket.join(token);
 
       let grid = grids.get(token);
@@ -16,8 +18,10 @@ function init(io: Server) {
         grids.set(token, grid);
       }
 
+
+      socket.emit('user:id', userID);
       socket.emit('grid:state', grid);
-      socket.emit('chat:records', fetchChatRecords(token));
+      // socket.emit('chat:records', fetchChatRecords(token));
     });
 
     socket.on('grid:updateCell', data => {

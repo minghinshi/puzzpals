@@ -4,8 +4,7 @@
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
     <AkariGrid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
-    <Chat :chat-state="chatState" @newMessage="onChatSubmit" ref="chatComponent" />  <!-- This line -->
-  </div>
+    <Chat :chat-state="chatState" :userID="userID" @newMessage="onChatSubmit" ref="chatComponent" />  </div>
 </template>
 
 <script setup lang="ts">
@@ -31,6 +30,7 @@ const gridComponent = useTemplateRef("gridComponent");
 const chatState: Ref<ChatState> = ref({messages: []});
 const chatComponent = useTemplateRef("chatComponent");
 
+const userID = ref<string | null>(null);
 const props = defineProps({
   token: { type: String, required: true }
 });
@@ -62,6 +62,9 @@ function onCellUpdated(idx: number, value: CellState) {
 }
 
 function onChatSubmit(message: ChatMessage) {
+  if (userID.value) {
+    message.user = userID.value;
+  }
   socket.emit('chat:newMessage', { token: props.token, message: message });
 }
 
@@ -70,6 +73,10 @@ function initiateSocket() {
   if (!socket.connected) {
     socket.connect();
   }
+
+  socket.on('user:id', (id: string) => {
+    userID.value = id;
+  });
 
   socket.on('grid:state', (data: GridState) => {
     gridState.value = data;
