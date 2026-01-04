@@ -1,5 +1,6 @@
 import type { Server } from 'socket.io';
 import { createEmptyGrid, grids } from './grid.js';
+import { pushMessage, fetchChatRecords } from './chat.js';
 
 function init(io: Server) {
   io.on('connection', socket => {
@@ -14,8 +15,9 @@ function init(io: Server) {
         grid = createEmptyGrid();
         grids.set(token, grid);
       }
-      
+
       socket.emit('grid:state', grid);
+      socket.emit('chat:records', fetchChatRecords(token));
     });
 
     socket.on('grid:updateCell', data => {
@@ -32,13 +34,21 @@ function init(io: Server) {
       socket.to(token).emit('grid:cellUpdated', { idx, value });
     });
 
-    const handleDisconnect = data => {
-      const token = data.token
-      socket.leave(token);
-    }
+    socket.on('chat:newMessage', data => {
+      const { token, message } = data;
+      pushMessage(token, message);
+      io.to(token).emit('chat:messageNew', message);
+    });
+
+
+    const handleDisconnect = (data?: { token?: string }) => {
+      if (data?.token) {
+        socket.leave(data.token);
+      }
+    };
 
     socket.on('room:leave', data => handleDisconnect(data));
-    socket.on('disconnect', data => handleDisconnect(data));
+    socket.on('disconnect', () => handleDisconnect());
   })
 }
 

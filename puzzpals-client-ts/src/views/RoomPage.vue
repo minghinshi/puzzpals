@@ -4,6 +4,7 @@
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
     <AkariGrid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
+    <Chat :chat-state="chatState" @newMessage="onChatSubmit" ref="chatComponent" />  <!-- This line -->
   </div>
 </template>
 
@@ -15,14 +16,20 @@ import api from '@/services/api';
 import { socket } from '@/socket';
 
 import AkariGrid from '@/components/AkariGrid.vue';
+import Chat from '@/components/Chat.vue';
 import type GridState from '@/models/GridState';
 import type CellState from '@/models/CellState';
+import type ChatState from '@/models/ChatState';
+import type { ChatMessage } from '@/models/ChatState';
 
 const router = useRouter();
 
 const room: Ref<{ token: string; } | null> = ref(null);
 const gridState: Ref<GridState | null> = ref(null);
 const gridComponent = useTemplateRef("gridComponent");
+
+const chatState: Ref<ChatState> = ref({messages: []});
+const chatComponent = useTemplateRef("chatComponent");
 
 const props = defineProps({
   token: { type: String, required: true }
@@ -54,6 +61,11 @@ function onCellUpdated(idx: number, value: CellState) {
   socket.emit('grid:updateCell', { token: props.token, idx, value });
 }
 
+function onChatSubmit(message: ChatMessage) {
+  socket.emit('chat:newMessage', { token: props.token, message: message });
+}
+
+
 function initiateSocket() {
   if (!socket.connected) {
     socket.connect();
@@ -70,6 +82,22 @@ function initiateSocket() {
     const { idx, value } = data;
     gridComponent.value.onCellUpdated(idx, value);
   });
+
+  socket.on('chat:records', (history) => {
+    if (chatComponent.value === null) {
+      throw new Error("Chat Block is missing");
+    }
+    chatState.value.messages.splice(0, chatState.value.messages.length, ...history);
+    chatComponent.value.scrollToBottom();
+  });
+
+  socket.on('chat:messageNew', (msgBlock) => {
+    if (chatComponent.value === null) {
+      throw new Error("Chat Block is missing");
+    }
+    chatState.value.messages.push(msgBlock);
+    chatComponent.value.scrollToBottom();
+  });
 }
 
 onMounted(async () => {
@@ -84,5 +112,7 @@ onBeforeUnmount(() => {
   socket.emit('room:leave', { token: props.token });
   socket.off("grid:state");
   socket.off("grid:cellUpdated");
+  socket.off('chat:records');
+  socket.off('chat:messageNew');
 });
 </script>
