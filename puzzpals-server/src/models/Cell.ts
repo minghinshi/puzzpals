@@ -1,22 +1,20 @@
 const NO_INPUT = 2;
 
-module.exports = class Cell {
+export default class Cell {
   isBlack = false;
-  number = null;
+  number: number | null = null;
   input = NO_INPUT;
 
   setBlack() {
     this.isBlack = true;
   }
 
-  setClue(number) {
+  setClue(number: number) {
     this.isBlack = true;
     this.number = number;
   }
 
-  setData(data) {
-    this.isBlack = data.isBlack;
-    this.number = data.number;
+  setData(data: { input: number; }) {
     this.input = data.input;
   }
 }
