@@ -1,13 +1,14 @@
-const express = require('express');
-const Room = require('../models/Room');
-const router = express.Router();
+import { Router } from 'express';
+import Room from '../models/Room.js';
+
+const router = Router();
 
 function makeToken(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const bytes = crypto.getRandomValues(new Uint8Array(length));
   let result = '';
   for (let i = 0; i < length; i++) {
-    result += chars[bytes[i] % chars.length];
+    result += chars[bytes[i]! % chars.length];
   }
   return result;
 }
@@ -56,4 +57,4 @@ router.post('/:token/leave', async (req, res) => {
   res.json({ room });
 })
 
-module.exports = router;
+export default router;

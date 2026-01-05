@@ -2,9 +2,11 @@
   "name": "puzzpals-server",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node ./bin/www",
-    "devstart": "nodemon ./bin/www"
+    "build": "tsc",
+    "start": "node ./dist/bin/www.js",
+    "dev": "tsx watch ./src/bin/www.ts"
   },
   "dependencies": {
     "cookie-parser": "~1.4.7",
@@ -13,8 +15,16 @@
     "express": "~5.1.0",
     "mongoose": "^8.19.3",
     "morgan": "~1.10.1",
-    "nodemon": "^3.1.10",
     "socket.io": "^4.8.1",
     "vary": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/debug": "^4.1.12",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.0.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
