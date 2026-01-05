@@ -1,7 +1,6 @@
 import { Cell, NO_INPUT, type Grid } from "../types/Akari.js";
 
 function parse(input: any): Grid {
-    console.log(input);
     if (input.type !== "akari") {
         throw new Error(`Invalid puzzle type: ${input.name}`);
     }

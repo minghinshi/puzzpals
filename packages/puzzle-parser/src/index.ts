@@ -10,4 +10,4 @@ function parsePuzzle(input: any): AkariGrid {
   return parseAkari(input);
 }
 
-export { createEmptyGrid, parsePuzzle };
+export { createEmptyGrid, parsePuzzle, type AkariGrid };

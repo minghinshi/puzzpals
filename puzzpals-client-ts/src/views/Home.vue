@@ -19,18 +19,23 @@ async function uploadFile() {
   }
 
   const file = fileInput.value.files[0];
+  let puzzleData;
 
-  // Read JSON file
-  const puzzleData = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsText(file);
-  }).then(JSON.parse)
-  .catch(() => {
-    alert('Failed to read or parse the file. Please ensure it is a valid JSON file.');
-    throw new Error('File read/parse error');
-  });
+  try {
+    // Read JSON file 
+    puzzleData = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    }).then(JSON.parse)
+    .catch(() => {
+      alert('Failed to read or parse the file. Please ensure it is a valid JSON file.');
+      throw new Error('File read/parse error');
+    });
+  } catch (e) {
+    return;
+  }
 
   console.log('Parsed puzzle data:', puzzleData);
 
@@ -39,8 +44,14 @@ async function uploadFile() {
     headers: {
       'Content-Type': 'application/json'
     }
+  }).catch((err) => {
+    alert(`Upload failed: ${err.response?.data?.error || err.message}`);
   });
-  router.push(`/room/${res.data.token}`);
+
+  if (res !== undefined && res.data && res.data.token) {
+    router.push(`/room/${res.data.token}`);
+  }
+
 }
 </script>
 

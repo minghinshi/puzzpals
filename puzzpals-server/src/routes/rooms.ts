@@ -34,14 +34,20 @@ async function createRoom() {
 
 // Create room by uploading a file
 router.post('/create', async (req, res) => {
+
+  // Test parse file 
+  const puzzleData = req.body;
+  try {
+    parsePuzzle(puzzleData);
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid puzzle data' });
+  }
+
   const room = await createRoom();
   if (room === null) {
     return res.status(500).json({ error: 'Could not create room, please try again' });
   }
 
-  // Test parse file 
-  const puzzleData = req.body;
-  const grid = parsePuzzle(puzzleData); 
   room.puzzleData = puzzleData;
   await room.save();
 
