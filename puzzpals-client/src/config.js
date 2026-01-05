@@ -1,7 +1,7 @@
 function requireEnv(name) {
     const value = import.meta.env[name];
     if (!value) {
-        throw new Error("Missing environment variable: ${name}." +
+        throw new Error(`Missing environment variable: ${name}.` +
             " Refer to .env.example for an example configuration.");
     }
     return value;
