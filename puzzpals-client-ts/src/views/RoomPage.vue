@@ -8,6 +8,7 @@
 </template>
 
 <script setup lang="ts">
+import { isAxiosError } from 'axios';
 import { onBeforeMount, onBeforeUnmount, onMounted, ref, type Ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -28,13 +29,27 @@ const props = defineProps({
   token: { type: String, required: true }
 });
 
+function is404(err: unknown) {
+  return typeof err === 'object' &&
+    err !== null &&
+    'response' in err &&
+    typeof err.response === 'object' &&
+    err.response !== null &&
+    'status' in err.response &&
+    err.response.status === 404;
+}
+
 async function fetchRoom() {
   try {
     const res = await api.get(`/rooms/${props.token}`);
     room.value = res.data.room;
   } catch (err) {
-    console.error(err);
-    router.push('/');
+    if (is404(err)) {
+      router.push('/404');
+    } else {
+      console.error(err);
+      router.push('/');
+    }
   }
 }
 

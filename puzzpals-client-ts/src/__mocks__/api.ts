@@ -15,7 +15,7 @@ const api: MockApi = {
       case '/rooms/TestRm':
         return { data: { room: 'TestRm' } };
       default:
-        return { data: null };
+        throw { response: { status: 404 } };
     }
   },
 

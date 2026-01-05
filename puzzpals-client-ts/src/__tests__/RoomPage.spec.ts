@@ -2,15 +2,17 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-import socket from "@/__mocks__/socket";
 import api from "@/__mocks__/api";
+import { pushMock, useRouter } from "@/__mocks__/router";
+import socket from "@/__mocks__/socket";
 
 import { BULB, bulbText, NO_INPUT } from "@/models/Cell";
 import type GridState from "@/models/GridState";
 import RoomPage from "@/views/RoomPage.vue";
 
-vi.mock('@/socket', () => { return { default: socket }; });
-vi.mock('@/services/api', () => { return { default: api }; });
+vi.mock('@/socket', () => ({ default: socket }));
+vi.mock('@/services/api', () => ({ default: api }));
+vi.mock('vue-router', () => ({ useRouter }));
 
 describe('RoomPage', () => {
   const gridState: GridState = {
@@ -41,6 +43,15 @@ describe('RoomPage', () => {
 
     // Server receives request to join room
     expect(socket.emit).toHaveBeenCalledWith('room:join', { token: 'TestRm' });
+  });
+
+  it('redirects to 404 if room does not exist', async () => {
+    // Load the room page with non-existent room
+    mount(RoomPage, { props: { token: 'TestRn' } });
+    await flushPromises();
+
+    // Redirect to 404
+    expect(pushMock).toHaveBeenCalledWith('/404');
   });
 
   it('leaves room when button pressed', async () => {
