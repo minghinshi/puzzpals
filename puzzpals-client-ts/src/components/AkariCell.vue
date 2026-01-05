@@ -1,24 +1,33 @@
 <template>
-  <div class="cell" :class="classObject" role="button" tabindex="0" @click="onLeftClick"
-    @keydown.enter.prevent="onLeftClick" @keydown.space.prevent="onLeftClick" @contextmenu.prevent="onRightClick">
+  <div class="cell" 
+    :class="classObject" 
+    role="button" 
+    tabindex="0" 
+    @click="onLeftClick"
+    @keydown.enter.prevent="onLeftClick" 
+    @keydown.space.prevent="onLeftClick" 
+    @contextmenu.prevent="onRightClick"
+  >
     {{ cell.text }}
   </div>
 </template>
 
 <script setup lang="ts">
-import Cell from '@/models/Cell';
 import { computed } from 'vue';
+import type Cell from '@/models/Cell';
+import { type CellStatus } from "@/models/CellStatus";
 
-const props = defineProps({
-  cell: { type: Cell, required: true }
-});
+const props = defineProps<{
+  cell: Cell;
+  displayStatus?: CellStatus | null;
+}>();
 
 const classObject = computed(() => ({
   'black': props.cell.isBlack,
   'white': !props.cell.isBlack,
-  'lit': props.cell.isLit,
-  'number-error': props.cell.hasNumberError,
-  'bulb-error': props.cell.hasBulbError,
+  'lit': props.displayStatus?.isLit ?? false,
+  'number-error': props.displayStatus?.isNumberError ?? false,
+  'bulb-error': props.displayStatus?.isBulbError ?? false,
 }));
 
 const emit = defineEmits(['leftClick', 'rightClick']);
