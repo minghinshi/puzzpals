@@ -1,9 +1,12 @@
 import type { Server } from 'socket.io';
 import { createEmptyGrid, grids } from './grid.js';
+import { parsePuzzle } from '#puzzle-parser/esm/index.js';
+import Room from './models/Room.js';
+import e from 'express';
 
 function init(io: Server) {
   io.on('connection', socket => {
-    socket.on('room:join', data => {
+    socket.on('room:join', async data => {
 
       const token = data.token;
       console.log("joined");
@@ -11,7 +14,8 @@ function init(io: Server) {
 
       let grid = grids.get(token);
       if (!grid) {
-        grid = createEmptyGrid();
+        const puzzleData = await Room.findOne({ token }).then(r => r === null ? null : r.puzzleData);
+        grid = puzzleData === null ? createEmptyGrid() : parsePuzzle(puzzleData);
         grids.set(token, grid);
       }
       
