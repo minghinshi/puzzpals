@@ -1,3 +1,5 @@
 import { io } from 'socket.io-client';
-const socket = io(import.meta.env.VITE_API_WS);
+import config from '@/config';
+
+const socket = io(config.apiWs);
 export default socket;
