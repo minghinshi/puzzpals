@@ -2,7 +2,6 @@ import type { Server } from 'socket.io';
 import { createEmptyGrid, grids } from './grid.js';
 import { parsePuzzle } from '#puzzle-parser/esm/index.js';
 import Room from './models/Room.js';
-import e from 'express';
 
 function init(io: Server) {
   io.on('connection', socket => {
@@ -18,7 +17,7 @@ function init(io: Server) {
         grid = puzzleData === null ? createEmptyGrid() : parsePuzzle(puzzleData);
         grids.set(token, grid);
       }
-      
+
       socket.emit('grid:state', grid);
     });
 
@@ -36,14 +35,14 @@ function init(io: Server) {
       socket.to(token).emit('grid:cellUpdated', { idx, value });
     });
 
-    const handleDisconnect = data => {
-      const token = data.token
+    const handleDisconnect = (data: any) => {
+      const token = data.token;
       socket.leave(token);
-    }
+    };
 
     socket.on('room:leave', data => handleDisconnect(data));
     socket.on('disconnect', data => handleDisconnect(data));
-  })
+  });
 }
 
 export default init;
