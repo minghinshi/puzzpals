@@ -40,6 +40,7 @@ function onRightClick() {
   align-items: center;
   justify-content: center;
 
+  font-size: 1.5rem;
   border: 1px solid #ddd;
   cursor: pointer;
 }

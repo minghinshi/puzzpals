@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Room from '../models/Room.js';
+import { parsePuzzle } from '#puzzle-parser/esm/index.js';
 
 const router = Router();
 
@@ -13,8 +14,7 @@ function makeToken(length = 6) {
   return result;
 }
 
-// Create room
-router.post('/create', async (req, res) => {
+async function createRoom() {
   let token;
   // Collision check
   for (let i = 0; i < 5; i++) {
@@ -23,14 +23,37 @@ router.post('/create', async (req, res) => {
     if (!exists) break;
     token = null;
   }
-  if (!token) return res.status(500).json({ error: 'Could not generate token' });
+  if (!token) 
+    return null;
 
   const room = new Room({ token });
   await room.save();
 
+  return room;
+}
+
+// Create room by uploading a file
+router.post('/create', async (req, res) => {
+
+  // Test parse file 
+  const puzzleData = req.body;
+  try {
+    parsePuzzle(puzzleData);
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid puzzle data' });
+  }
+
+  const room = await createRoom();
+  if (room === null) {
+    return res.status(500).json({ error: 'Could not create room, please try again' });
+  }
+
+  room.puzzleData = puzzleData;
+  await room.save();
+
   res.json({
     token: room.token
-  });
+  })
 });
 
 // Get room by token
