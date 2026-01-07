@@ -15,11 +15,6 @@ let handlers: {
   [ev: SocketEvent]: Function[];
 } = {};
 
-let clientEvents: {
-  ev: SocketEvent,
-  payload: any;
-}[] = [];
-
 const socket: MockSocket = {
   on(ev, cb) {
     handlers[ev] = (handlers[ev] || []).concat(cb);
@@ -44,7 +39,6 @@ const socket: MockSocket = {
   // Called by tests
   reset() {
     handlers = {};
-    clientEvents = [];
   },
 
   emitServerEvent(ev, payload) {

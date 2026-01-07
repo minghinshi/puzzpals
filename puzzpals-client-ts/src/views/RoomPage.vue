@@ -8,7 +8,6 @@
 </template>
 
 <script setup lang="ts">
-import { isAxiosError } from 'axios';
 import { onBeforeMount, onBeforeUnmount, onMounted, ref, type Ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 
