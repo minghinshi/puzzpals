@@ -30,45 +30,45 @@ const rows = props.gridState.rows;
 const cols = props.gridState.cols;
 let hasWon = false;
 
-// Undo / Redo functionality 
+// Undo / Redo functionality
 const MAX_UNDO = 100;
 
-type UndoTreeEntry = {
+type UndoStackEntry = {
   idx: number;
   prevState: CellState;
 };
 
-let undoTree = {
-  undo: [] as UndoTreeEntry[],
-  redo: [] as UndoTreeEntry[]
+const undoStack = {
+  undo: [] as UndoStackEntry[],
+  redo: [] as UndoStackEntry[]
 }
 
-function updateUndoTree(idx: number, prevState: CellState) {
-  undoTree.undo.push({ idx, prevState });
-  undoTree.redo = [];
+function updateUndoStack(idx: number, prevState: CellState) {
+  undoStack.undo.push({ idx, prevState });
+  undoStack.redo = [];
 
-  if (undoTree.undo.length > MAX_UNDO) {
-    undoTree.undo.shift();
+  if (undoStack.undo.length > MAX_UNDO) {
+    undoStack.undo.shift();
   }
 }
 
 function undo() {
-  const entry = undoTree.undo.pop();
+  const entry = undoStack.undo.pop();
   if (entry) {
     const cell = getCell(entry.idx);
     const currentState = cell.state;
     onCellUpdated(entry.idx, entry.prevState);
-    undoTree.redo.push({ idx: entry.idx, prevState: currentState });
+    undoStack.redo.push({ idx: entry.idx, prevState: currentState });
   }
 }
 
 function redo() {
-  const entry = undoTree.redo.pop();
+  const entry = undoStack.redo.pop();
   if (entry) {
     const cell = getCell(entry.idx);
     const currentState = cell.state;
     onCellUpdated(entry.idx, entry.prevState);
-    undoTree.undo.push({ idx: entry.idx, prevState: currentState });
+    undoStack.undo.push({ idx: entry.idx, prevState: currentState });
   }
 }
 
@@ -76,7 +76,7 @@ function onCellClicked(cell: Cell) {
   const prevState = cell.state;
   if (cell.toggleLightBulb()) {
     if (prevState !== cell.state) {
-      updateUndoTree(cell.idx, prevState);
+      updateUndoStack(cell.idx, prevState);
     }
     emit('updateCell', cell.idx, cell.state);
   }
@@ -86,7 +86,7 @@ function onCellRightClicked(cell: Cell) {
   const prevState = cell.state;
   if (cell.toggleNote()) {
     if (prevState !== cell.state) {
-      updateUndoTree(cell.idx, prevState);
+      updateUndoStack(cell.idx, prevState);
     }
     emit('updateCell', cell.idx, cell.state);
   }
@@ -161,9 +161,13 @@ function onBulbChanged(modifiedCell: Cell) {
 defineExpose({ onCellUpdated, undo, redo });
 
 const keyboardListener = (e: KeyboardEvent) => {
-  if (e.ctrlKey && e.key === 'z') {
+  // Mac convention: Cmd+Z / Shift+Cmd+Z
+  const isUndo = (e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey;
+  const isRedo = (e.ctrlKey && e.key === 'y') || (e.metaKey && e.key === 'z' && e.shiftKey);
+
+  if (isUndo) {
     undo();
-  } else if (e.ctrlKey && e.key === 'y') {
+  } else if (isRedo) {
     redo();
   }
 };
