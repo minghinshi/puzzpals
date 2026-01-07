@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref, watch, type Ref } from "vue";
+import { onBeforeMount, onBeforeUnmount, ref, watch, type Ref } from "vue";
 
 import AkariCell from "@/components/AkariCell.vue";
 import Cell from "@/models/Cell";
@@ -30,14 +30,64 @@ const rows = props.gridState.rows;
 const cols = props.gridState.cols;
 let hasWon = false;
 
+// Undo / Redo functionality 
+const MAX_UNDO = 100;
+
+type UndoTreeEntry = {
+  idx: number;
+  prevState: CellState;
+};
+
+let undoTree = {
+  undo: [] as UndoTreeEntry[],
+  redo: [] as UndoTreeEntry[]
+}
+
+function updateUndoTree(idx: number, prevState: CellState) {
+  undoTree.undo.push({ idx, prevState });
+  undoTree.redo = [];
+
+  if (undoTree.undo.length > MAX_UNDO) {
+    undoTree.undo.shift();
+  }
+}
+
+function undo() {
+  const entry = undoTree.undo.pop();
+  if (entry) {
+    const cell = getCell(entry.idx);
+    const currentState = cell.state;
+    onCellUpdated(entry.idx, entry.prevState);
+    undoTree.redo.push({ idx: entry.idx, prevState: currentState });
+  }
+}
+
+function redo() {
+  const entry = undoTree.redo.pop();
+  if (entry) {
+    const cell = getCell(entry.idx);
+    const currentState = cell.state;
+    onCellUpdated(entry.idx, entry.prevState);
+    undoTree.undo.push({ idx: entry.idx, prevState: currentState });
+  }
+}
+
 function onCellClicked(cell: Cell) {
+  const prevState = cell.state;
   if (cell.toggleLightBulb()) {
+    if (prevState !== cell.state) {
+      updateUndoTree(cell.idx, prevState);
+    }
     emit('updateCell', cell.idx, cell.state);
   }
 }
 
 function onCellRightClicked(cell: Cell) {
+  const prevState = cell.state;
   if (cell.toggleNote()) {
+    if (prevState !== cell.state) {
+      updateUndoTree(cell.idx, prevState);
+    }
     emit('updateCell', cell.idx, cell.state);
   }
 }
@@ -108,7 +158,15 @@ function onBulbChanged(modifiedCell: Cell) {
   }
 }
 
-defineExpose({ onCellUpdated });
+defineExpose({ onCellUpdated, undo, redo });
+
+const keyboardListener = (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.key === 'z') {
+    undo();
+  } else if (e.ctrlKey && e.key === 'y') {
+    redo();
+  }
+};
 
 onBeforeMount(() => {
   // Convert CellStates to Cell objects
@@ -127,6 +185,12 @@ onBeforeMount(() => {
     // Watch light bulbs get added/removed from Cells, and update light levels
     watch(() => cell.hasBulb, () => onBulbChanged(cell));
   });
+
+  window.addEventListener('keydown', keyboardListener);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', keyboardListener);
 });
 </script>
 

@@ -4,6 +4,8 @@
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
     <AkariGrid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
+    <button @click="undo">Undo</button>
+    <button @click="redo">Redo</button>
   </div>
 </template>
 
@@ -70,6 +72,18 @@ function initiateSocket() {
     const { idx, value } = data;
     gridComponent.value.onCellUpdated(idx, value);
   });
+}
+
+function undo() {
+  if (gridComponent.value !== null) {
+    gridComponent.value.undo();
+  }
+}
+
+function redo() {
+  if (gridComponent.value !== null) {
+    gridComponent.value.redo();
+  }
 }
 
 onMounted(async () => {
