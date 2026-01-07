@@ -3,10 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "imports": {
-    "#puzzle-parser": "../packages/puzzle-parser/dist/esm/index.js",
-    "#puzzle-parser/*": "../packages/puzzle-parser/dist/esm/*.js"
-  },
   "scripts": {
     "build:parser": "cd ../packages/puzzle-parser && npm run build",
     "watch:parser": "cd ../packages/puzzle-parser && npm run watch",
@@ -22,9 +18,11 @@
     "mongoose": "^8.19.3",
     "morgan": "~1.10.1",
     "socket.io": "^4.8.1",
-    "vary": "^1.1.2"
+    "vary": "^1.1.2",
+    "better-sqlite3": "^12.5.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/cookie-parser": "^1.4.10",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.6",

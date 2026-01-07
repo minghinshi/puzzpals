@@ -1,35 +1,36 @@
 import type { Server } from 'socket.io';
-import { createEmptyGrid, grids } from './grid.js';
-import { parsePuzzle } from '#puzzle-parser/esm/index.js';
-import Room from './models/Room.js';
+import { createEmptyGrid } from './grid.js';
+import { getRoomFromStore } from './memorystore.js';
+import { initDb } from './db.js';
+
+let db: any = null;
 
 function init(io: Server) {
-  io.on('connection', socket => {
-    socket.on('room:join', async data => {
+  db = initDb();
 
+  io.on('connection', socket => {
+    socket.on('room:join', data => {
       const token = data.token;
       console.log("joined");
       socket.join(token);
 
-      let grid = grids.get(token);
+      const grid = getRoomFromStore(token)?.puzzleData || null;
       if (!grid) {
-        const puzzleData = await Room.findOne({ token }).then(r => r === null ? null : r.puzzleData);
-        grid = puzzleData === null ? createEmptyGrid() : parsePuzzle(puzzleData);
-        grids.set(token, grid);
+        socket.emit('grid:state', createEmptyGrid());
+      } else {
+        socket.emit('grid:state', grid);
       }
-
-      socket.emit('grid:state', grid);
     });
 
     socket.on('grid:updateCell', data => {
       const { token, idx, value } = data;
-      const grid = grids.get(token);
+      const grid = getRoomFromStore(token)?.puzzleData;
 
       if (!grid) {
         return;
       }
 
-      grids.get(token).cells[idx].setData(value);
+      grid.cells[idx]?.setData(value);
 
       // Emit the update to all clients in the room (including the sender)
       io.to(token).emit('grid:cellUpdated', { idx, value });
@@ -43,6 +44,18 @@ function init(io: Server) {
     socket.on('room:leave', data => handleDisconnect(data));
     socket.on('disconnect', data => handleDisconnect(data));
   });
+
+  // placeholder: start autosave interval here in future (once implemented)
 }
 
-export default init;
+// Save to DB on shutdown to prevent data loss
+function stop(io: Server) {
+  io.close();
+
+  if (db) {
+    db.close();
+    db = null;
+  }
+}
+
+export { init, stop };
