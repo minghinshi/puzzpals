@@ -1,133 +1,169 @@
 <template>
   <div class="grid-wrapper">
-    <div class="grid" :style="{
-      gridTemplateColumns: `repeat(${gridState.cols}, 1fr)`,
-      gridTemplateRows: `repeat(${gridState.rows}, 1fr)`
+    <div v-if="gridData" class="grid" 
+      :style="{
+      gridTemplateColumns: `repeat(${gridData.cols}, 1fr)`,
+      gridTemplateRows: `repeat(${gridData.rows}, 1fr)`
     }">
-      <AkariCell v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @left-click="onCellClicked"
+      <AkariCell 
+        v-for="(cell, idx) in gridData.cells" 
+        :key="idx" 
+        :idx="idx" 
+        :cell="cell" 
+        :display-status="cellDisplayStatuses[idx] ?? null"
+        @left-click="onCellClicked"
         @right-click="onCellRightClicked" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref, watch, type Ref } from "vue";
+import { watch, type Ref, computed } from "vue";
 
 import AkariCell from "@/components/AkariCell.vue";
 import Cell from "@/models/Cell";
-import type CellState from "@/models/CellState";
-import type GridState from "@/models/GridState";
+import Grid from "@/models/Grid";
+import { type CellStatus } from "@/models/CellStatus";
+
 
 const props = defineProps<{
-  gridState: GridState;
+  gridData?: Grid;
 }>();
 
-const emit = defineEmits(['updateCell']);
-
-const cells: Ref<Cell[]> = ref([]);
-
-const rows = props.gridState.rows;
-const cols = props.gridState.cols;
 let hasWon = false;
 
+const emit = defineEmits(['left-click', 'right-click']);
+
+const rows = computed(() => props.gridData?.rows ?? 0);
+const cols = computed(() => props.gridData?.cols ?? 0);
+const cellDisplayStatuses: Ref<CellStatus[]> = computed(() => {
+  if (!props.gridData) return [];
+  return props.gridData.cells.map(cell => computeDisplayStatus(cell, props.gridData));
+})
+
 function onCellClicked(cell: Cell) {
-  if (cell.toggleLightBulb()) {
-    emit('updateCell', cell.idx, cell.state);
-  }
+  emit('left-click', cell);
 }
 
 function onCellRightClicked(cell: Cell) {
-  if (cell.toggleNote()) {
-    emit('updateCell', cell.idx, cell.state);
-  }
-}
-
-function onCellUpdated(idx: number, cellState: CellState) {
-  const cell = getCell(idx);
-  cell.setState(cellState);
+  emit('right-click', cell);
 }
 
 function getRowCol(idx: number): [number, number] {
-  const row = Math.floor(idx / cols);
-  const col = idx % cols;
+  const row = Math.floor(idx / cols.value);
+  const col = idx % cols.value;
   return [row, col];
 }
 
 function getIdx(row: number, col: number) {
-  return row * cols + col;
+  return row * cols.value + col;
 }
 
-function getCell(idx: number) {
-  const cell = cells.value[idx];
-  if (typeof cell === "undefined") {
-    throw new Error(`Cell is undefined (idx = ${idx})`);
-  }
-  return cell;
-}
-
-function onBulbChanged(modifiedCell: Cell) {
-  // Light itself up
-  modifiedCell.changeLightLevel(modifiedCell.hasBulb);
-
-  const [startRow, startCol] = getRowCol(modifiedCell.idx);
-  const steps: [number, number][] = [
+function computeDisplayStatus(cell: Cell, grid: Grid | undefined): CellStatus {
+  const directions: [number, number][] = [
     [0, 1],
     [0, -1],
     [1, 0],
     [-1, 0]
   ];
 
-  for (const [dr, dc] of steps) {
-    let row = startRow + dr;
-    let col = startCol + dc;
+  if (grid === undefined) {
+    return {
+      isLit: false,
+      isNumberError: false,
+      isBulbError: false,
+      isRuleSatisfied: false
+    };
+  }
 
-    // Update number of adjacent bulbs
-    if (row >= 0 && row < rows && col >= 0 && col < cols) {
-      const idx = getIdx(row, col);
-      const cell = getCell(idx);
-      cell.changeAdjacentBulbCount(modifiedCell.hasBulb);
+  if (cell.isBlack) {
+    // If black cell, check number constraint
+    const [row, col] = getRowCol(cell.idx);
+    const number = cell.state.number;
+    if (number === null) {
+      return {
+        isLit: false,
+        isNumberError: false,
+        isBulbError: false,
+        isRuleSatisfied: true
+      };
     }
 
-    // Update light levels
-    while (row >= 0 && row < rows && col >= 0 && col < cols) {
+    // Check adjacent bulbs
+    let adjacentBulbCount = 0;
+    const bulbsCount = 0
+    for (const [dr, dc] of directions) {
+      const newRow = row + dr;
+      const newCol = col + dc;
+      if (newRow >= 0 && newRow < rows.value && newCol >= 0 && newCol < cols.value) {
+        const neighborIdx = getIdx(newRow, newCol);
+        const neighborCell = grid.cells[neighborIdx];
+        if (neighborCell === undefined) {
+          throw new Error("Neighbor cell is undefined");
+        }
+        if (neighborCell.hasBulb) {
+          adjacentBulbCount++;
+        }
+      }
+    }
+    return {
+      isLit: false,
+      isNumberError: adjacentBulbCount > number,
+      isBulbError: false,
+      isRuleSatisfied: adjacentBulbCount === number
+    };
+  }
+  
+  // If white cell, check lighting and bulb errors
+  let isLit = cell.hasBulb, hasBulbError = false;
+  const isBulb = cell.hasBulb;
+
+  for (const [dr, dc] of directions) {
+    let row = Math.floor(cell.idx / cols.value) + dr;
+    let col = (cell.idx % cols.value) + dc;
+
+    while (row >= 0 && row < rows.value && col >= 0 && col < cols.value) {
       const idx = getIdx(row, col);
-      const cell = getCell(idx);
-      if (cell.isBlack) {
+      const currentCell = grid.cells[idx];
+
+      if (currentCell === undefined) {
+        throw new Error("Current cell is undefined");
+      }
+
+      // Stop ray propagation at black cells
+      if (currentCell.isBlack) {
         break;
       }
-      cell.changeLightLevel(modifiedCell.hasBulb);
+
+      if (currentCell.hasBulb) {
+        if (isBulb) {
+          hasBulbError = true; // More than one bulb lighting this cell
+        }
+        isLit = true;
+      }
       row += dr;
       col += dc;
     }
   }
 
-  // Check victory
-  if (!hasWon && cells.value.every(cell => cell.isRuleSatisfied)) {
+  return {
+    isLit: isLit,
+    isNumberError: false,
+    isBulbError: hasBulbError,
+    isRuleSatisfied: isLit && !hasBulbError
+  };
+}
+
+watch(() => cellDisplayStatuses.value, (newStatuses) => {
+  if (newStatuses.length === 0 || props.gridData === undefined) {
+    return;
+  }
+  if (!hasWon && newStatuses.every((status) => status.isRuleSatisfied)) {
     alert("Congratulations! You have solved the puzzle.");
     hasWon = true;
   }
-}
-
-defineExpose({ onCellUpdated });
-
-onBeforeMount(() => {
-  // Convert CellStates to Cell objects
-  props.gridState.cells.forEach((cellState, idx) => {
-    const cell = new Cell(idx);
-    cell.setState(cellState);
-    cells.value.push(cell);
-  });
-
-  // Calculate light levels
-  cells.value.forEach(cell => {
-    // Initialise light levels
-    if (cell.hasBulb) {
-      onBulbChanged(cell);
-    }
-    // Watch light bulbs get added/removed from Cells, and update light levels
-    watch(() => cell.hasBulb, () => onBulbChanged(cell));
-  });
 });
+
 </script>
 
 <style scoped>
