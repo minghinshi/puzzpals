@@ -31,8 +31,8 @@ function init(io: Server) {
 
       grids.get(token).cells[idx].setData(value);
 
-      // Broadcast the update to clients
-      socket.to(token).emit('grid:cellUpdated', { idx, value });
+      // Emit the update to all clients in the room (including the sender)
+      io.to(token).emit('grid:cellUpdated', { idx, value });
     });
 
     const handleDisconnect = (data: any) => {
