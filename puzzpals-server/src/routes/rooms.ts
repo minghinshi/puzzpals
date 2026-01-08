@@ -56,7 +56,7 @@ router.post('/create', async (req, res) => {
 // Get room by token
 router.get('/:token', async (req, res) => {
   const { token } = req.params;
-  const room = getRoomFromStore(token);
+  const room = await getRoomFromStore(token);
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({ room });
 });
@@ -64,7 +64,7 @@ router.get('/:token', async (req, res) => {
 // Join room
 router.post('/:token/join', async (req, res) => {
   const { token } = req.params;
-  const room = getRoomFromStore(token);
+  const room = await getRoomFromStore(token);
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({ room });
 });
@@ -72,7 +72,7 @@ router.post('/:token/join', async (req, res) => {
 // Leave room
 router.post('/:token/leave', async (req, res) => {
   const { token } = req.params;
-  const room = getRoomFromStore(token);
+  const room = await getRoomFromStore(token);
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({ room });
 })

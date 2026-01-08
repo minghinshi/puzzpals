@@ -1,20 +1,27 @@
 import type { Server } from 'socket.io';
 import { createEmptyGrid } from './grid.js';
-import { getRoomFromStore } from './memorystore.js';
-import { initDb } from './db.js';
+import { isDirty, markAsClean, markAsDirty, getRoomFromStore, getAllRoomsFromStore } from './memorystore.js';
+import { initDb, closeDb, upsertRoom } from './db.js';
 
-let db: any = null;
+let interval: NodeJS.Timeout | null = null;
+let saving = false;
 
 function init(io: Server) {
-  db = initDb();
+  initDb();
 
   io.on('connection', socket => {
-    socket.on('room:join', data => {
+    socket.on('room:join', async data => {
       const token = data.token;
       console.log("joined");
       socket.join(token);
 
-      const grid = getRoomFromStore(token)?.puzzleData || null;
+      const room = await getRoomFromStore(token);
+      
+      if (!room) {
+        return;
+      }
+
+      const grid = room.puzzleData || null;
       if (!grid) {
         socket.emit('grid:state', createEmptyGrid());
       } else {
@@ -22,15 +29,22 @@ function init(io: Server) {
       }
     });
 
-    socket.on('grid:updateCell', data => {
+    socket.on('grid:updateCell', async data => {
       const { token, idx, value } = data;
-      const grid = getRoomFromStore(token)?.puzzleData;
+
+      const room = await getRoomFromStore(token);
+      if (!room) {
+        return;
+      }
+
+      const grid = room.puzzleData;
 
       if (!grid) {
         return;
       }
 
       grid.cells[idx]?.setData(value);
+      markAsDirty(room);
 
       // Emit the update to all clients in the room (including the sender)
       io.to(token).emit('grid:cellUpdated', { idx, value });
@@ -45,17 +59,29 @@ function init(io: Server) {
     socket.on('disconnect', data => handleDisconnect(data));
   });
 
-  // placeholder: start autosave interval here in future (once implemented)
+  interval = setInterval(autosave, 60 * 1000); // every 60 seconds
+}
+
+async function autosave() {
+  for (const [token, room] of getAllRoomsFromStore()) {
+    if (isDirty(room)) {
+      await upsertRoom(token, JSON.stringify(room.puzzleData));
+      markAsClean(room);
+    }
+  }
 }
 
 // Save to DB on shutdown to prevent data loss
-function stop(io: Server) {
+async function stop(io: Server) {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+  }
   io.close();
 
-  if (db) {
-    db.close();
-    db = null;
-  }
+  // Save to the database one last time
+  await autosave();
+  closeDb();
 }
 
 export { init, stop };

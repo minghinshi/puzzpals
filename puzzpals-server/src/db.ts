@@ -1,20 +1,25 @@
 import { join } from 'path';
 import Database from 'better-sqlite3';
+import type { Room } from './models/Room.js';
 
 export type DB = InstanceType<typeof Database>;
 
-function initDb(dbPath?: string): DB {
+let db: DB | null = null;
+
+function initDb(dbPath?: string) {
     const file = dbPath ?? join(process.cwd(), 'puzzpals-data.db');
     
-    const db = new Database(file);
+    db = new Database(file);
     console.log('sqlite initialized at', file);
     
-    createTable(db);
-    
-    return db;
+    createTable();
 }
 
-function createTable(db: DB) {
+function createTable() {
+    if (!db) { 
+        return;
+    }
+
     const sql = `CREATE TABLE IF NOT EXISTS rooms (
         token TEXT PRIMARY KEY UNIQUE,
         puzzle_data TEXT
@@ -22,23 +27,27 @@ function createTable(db: DB) {
     db.prepare(sql).run();
 }
 
-async function upsertRoom(_db: DB, _token: string, _puzzleJson: string | null, _gridJson: string | null) {
-    // skeleton: implement upsert logic later
+async function upsertRoom(token: string, puzzleJson: string) {
+    const sql = `INSERT OR REPLACE INTO rooms (token, puzzle_data) VALUES (?, ?)`
+    db?.prepare(sql).run(token, puzzleJson);
 }
 
-async function loadRoom(db: DB, token: string) {
-    const sql = "SELECT puzzle_data FROM rooms WHERE token = ?";
-    const row = db.prepare(sql).get(token) as { puzzle_data?: string } | undefined;
+async function fetchRoom(token: string) {
+    const sql = "SELECT * FROM rooms WHERE token = ?";
+    const row = db?.prepare(sql).get(token) as Room | undefined;
 
-    if (!row || row.puzzle_data == null) {
+    if (!row) {
         return null;
     }
 
-    try {
-        return JSON.parse(row.puzzle_data);
-    } catch (err) {
-        // This shouldn't happen unless the data is corrupted
-        console.error('Failed to parse puzzle_data for token', token, err);
+    return row;
+}
+
+function closeDb() {
+    if (db) {
+        db.close();
+        db = null;
     }
 }
-export { initDb, upsertRoom, loadRoom };
+
+export { initDb, upsertRoom, fetchRoom, closeDb };

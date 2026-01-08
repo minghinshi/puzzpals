@@ -1,6 +1,6 @@
 type Room = {
   token: string,
-  puzzleData?: string
+  puzzle_data?: string
 }
 
 export { type Room };
