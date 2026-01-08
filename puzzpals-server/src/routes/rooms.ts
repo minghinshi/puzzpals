@@ -20,7 +20,7 @@ async function generateToken() {
   // Collision check
   for (let i = 0; i < 5; i++) {
     token = makeToken(6);
-    const exists = getRoomFromStore(token);
+    const exists = await getRoomFromStore(token);
     if (!exists) break;
   }
   if (!token) 

@@ -2,6 +2,7 @@ import type { Server } from 'socket.io';
 import { createEmptyGrid } from './grid.js';
 import { isDirty, markAsClean, markAsDirty, getRoomFromStore, getAllRoomsFromStore } from './memorystore.js';
 import { initDb, closeDb, upsertRoom } from './db.js';
+import { serialize } from '@puzzpals/puzzle-parser';
 
 let interval: NodeJS.Timeout | null = null;
 let saving = false;
@@ -65,7 +66,8 @@ function init(io: Server) {
 async function autosave() {
   for (const [token, room] of getAllRoomsFromStore()) {
     if (isDirty(room)) {
-      await upsertRoom(token, JSON.stringify(room.puzzleData));
+      const serializedData = serialize(room.puzzleData);
+      await upsertRoom(token, serializedData);
       markAsClean(room);
     }
   }

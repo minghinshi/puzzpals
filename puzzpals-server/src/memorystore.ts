@@ -1,5 +1,6 @@
 import type { Grid } from "../../packages/puzzle-parser/dist/index.js";
 import { fetchRoom } from "./db.js";
+import { deserialize } from "@puzzpals/puzzle-parser";
 
 type RoomEntry = {
     token: string;
@@ -16,7 +17,7 @@ export async function getRoomFromStore(token: string): Promise<RoomEntry | null>
         const dbEntry = await fetchRoom(token);
         if (dbEntry && typeof dbEntry.puzzle_data === 'string') {
             try {
-                const parsedData = JSON.parse(dbEntry.puzzle_data);
+                const parsedData = deserialize(dbEntry.puzzle_data);
                 const roomEntry = {
                     token: dbEntry.token,
                     puzzleData: parsedData as Grid,

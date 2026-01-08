@@ -68,4 +68,29 @@ function parse(input: unknown): Grid {
     };
 }
 
-export { parse };
+function serialize(input: Grid): string {
+    const obj = {
+        type: input.type,
+        rows: input.rows,
+        cols: input.cols,
+        cells: input.cells
+    }
+    return JSON.stringify(obj);
+}
+
+function deserialize(input: string): Grid {
+    const obj = JSON.parse(input);
+
+    return {
+        rows: obj.rows,
+        cols: obj.cols,
+        type: obj.type,
+        cells: obj.cells.map((cellData: any) => {
+            const cell = new Cell();
+            cell.setData(cellData);
+            return cell;
+        })
+    }
+}
+
+export { parse, serialize, deserialize };
