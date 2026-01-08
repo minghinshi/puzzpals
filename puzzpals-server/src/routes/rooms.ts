@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getRoomFromStore, createRoomInStore } from 'src/memorystore.js';
-import { parsePuzzle } from '@/../../packages/puzzle-parser/dist/index.js';
+import { parsePuzzle } from '@puzzpals/puzzle-parser';
 
 const router = Router();
 

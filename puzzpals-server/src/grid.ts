@@ -1,3 +1,3 @@
-import { createEmptyGrid } from '../../packages/puzzle-parser/dist/index.js';
+import { createEmptyGrid } from '@puzzpals/puzzle-parser';
 
 export { createEmptyGrid };
