@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Room from '../models/Room.js';
-import { parsePuzzle } from '#puzzle-parser/esm/index.js';
+import { parsePuzzle } from '@puzzpals/puzzle-parser';
 
 const router = Router();
 

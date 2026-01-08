@@ -1,6 +1,6 @@
 import type { Server } from 'socket.io';
 import { createEmptyGrid, grids } from './grid.js';
-import { parsePuzzle } from '#puzzle-parser/esm/index.js';
+import { parsePuzzle } from '@puzzpals/puzzle-parser';
 import Room from './models/Room.js';
 
 function init(io: Server) {

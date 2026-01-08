@@ -1,0 +1,9 @@
+{
+  "name": "@puzzpals/puzzpals",
+  "private": true,
+  "workspaces": [
+    "puzzpals-client-ts",
+    "puzzpals-server",
+    "packages/*"
+  ]
+}

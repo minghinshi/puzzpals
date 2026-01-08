@@ -1,5 +1,4 @@
-import Cell from './models/Cell.js';
-import { createEmptyGrid } from '../../packages/puzzle-parser/dist/esm/index.js';
+import { createEmptyGrid } from '@puzzpals/puzzle-parser';
 
 // roomId => grid
 const grids = new Map();
