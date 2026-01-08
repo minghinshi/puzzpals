@@ -63,7 +63,8 @@ function parse(input: unknown): Grid {
     return {
         rows: gridData.length,
         cols: expectedCols,
-        cells
+        cells,
+        type: "akari"
     };
 }
 
