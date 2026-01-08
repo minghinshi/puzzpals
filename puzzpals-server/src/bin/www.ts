@@ -15,7 +15,6 @@ assertEnvExists(process.env.CLIENT_BASE_URL, "CLIENT_BASE_URL");
 
 import debug from 'debug';
 import { createServer } from 'http';
-import { connect } from 'mongoose';
 import { Server } from 'socket.io';
 import app from '../app.js';
 import { init, stop } from '../socket.js';
@@ -38,9 +37,6 @@ const io = new Server(server, {
 
 app.set('io', io);
 init(io);
-
-// Connect to Mongoose
-connect(process.env.MONGO_URI);
 
 // Listen on provided port, on all network interfaces
 server.listen(port);
