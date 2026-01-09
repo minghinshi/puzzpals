@@ -79,7 +79,9 @@ function initiateSocket() {
 
   socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {
     const { idx, value } = data;
-    if (areaComponent.value === null) return;
+    if (areaComponent.value === null) {
+      throw new Error("areaComponent is missing");
+    };
     areaComponent.value.onCellUpdated(idx, value);
   });
 }

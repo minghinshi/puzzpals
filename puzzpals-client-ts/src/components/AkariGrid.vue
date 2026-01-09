@@ -85,9 +85,7 @@ function redo() {
 function onCellClicked(cell: Cell) {
   const prevState = cell.state;
   if (cell.toggleLightBulb()) {
-    if (prevState !== cell.state) {
-      updateUndoStack(cell.idx, prevState);
-    }
+    updateUndoStack(cell.idx, prevState);
     emit('updateCell', cell.idx, cell.state);
   }
 }
@@ -95,9 +93,7 @@ function onCellClicked(cell: Cell) {
 function onCellRightClicked(cell: Cell) {
   const prevState = cell.state;
   if (cell.toggleNote()) {
-    if (prevState !== cell.state) {
-      updateUndoStack(cell.idx, prevState);
-    }
+    updateUndoStack(cell.idx, prevState);
     emit('updateCell', cell.idx, cell.state);
   }
 }
@@ -177,8 +173,10 @@ const keyboardListener = (e: KeyboardEvent) => {
 
   if (isUndo) {
     undo();
+    e.preventDefault();
   } else if (isRedo) {
     redo();
+    e.preventDefault();
   }
 };
 
