@@ -10,15 +10,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, type Ref, useTemplateRef } from 'vue';
+import { onBeforeMount, onBeforeUnmount, onMounted, ref, type Ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 
 import api from '@/services/api';
-import { socket } from '@/socket';
+import socket from '@/socket';
 
 import AkariGrid from '@/components/AkariGrid.vue';
-import type GridState from '@/models/GridState';
 import type CellState from '@/models/CellState';
+import type GridState from '@/models/GridState';
 
 const router = useRouter();
 
@@ -30,13 +30,27 @@ const props = defineProps({
   token: { type: String, required: true }
 });
 
+function is404(err: unknown) {
+  return typeof err === 'object' &&
+    err !== null &&
+    'response' in err &&
+    typeof err.response === 'object' &&
+    err.response !== null &&
+    'status' in err.response &&
+    err.response.status === 404;
+}
+
 async function fetchRoom() {
   try {
     const res = await api.get(`/rooms/${props.token}`);
     room.value = res.data.room;
   } catch (err) {
-    console.error(err);
-    router.push('/');
+    if (is404(err)) {
+      router.push('/404');
+    } else {
+      console.error(err);
+      router.push('/');
+    }
   }
 }
 
@@ -57,10 +71,6 @@ function onCellUpdated(idx: number, value: CellState) {
 }
 
 function initiateSocket() {
-  if (!socket.connected) {
-    socket.connect();
-  }
-
   socket.on('grid:state', (data: GridState) => {
     gridState.value = data;
   });
@@ -86,9 +96,9 @@ function redo() {
   }
 }
 
-onMounted(async () => {
-  initiateSocket();
+onBeforeMount(initiateSocket);
 
+onMounted(async () => {
   await fetchRoom();
   console.log(`Joining room ${props.token}`);
   await join();

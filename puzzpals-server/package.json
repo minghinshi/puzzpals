@@ -3,10 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "imports": {
-    "#puzzle-parser": "../packages/puzzle-parser/dist/esm/index.js",
-    "#puzzle-parser/*": "../packages/puzzle-parser/dist/esm/*.js"
-  },
   "scripts": {
     "build:parser": "cd ../packages/puzzle-parser && npm run build",
     "watch:parser": "cd ../packages/puzzle-parser && npm run watch",

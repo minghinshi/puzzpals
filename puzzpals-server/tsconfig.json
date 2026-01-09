@@ -5,10 +5,6 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": ".",
-    "paths": {
-      "#puzzle-parser": ["../packages/puzzle-parser/dist/index.d.ts"],
-      "#puzzle-parser/*": ["../packages/puzzle-parser/dist/*"]
-    },
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
