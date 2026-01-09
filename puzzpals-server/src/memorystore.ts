@@ -1,6 +1,5 @@
-import type { Grid } from "../../packages/puzzle-parser/dist/index.js";
 import { fetchRoom } from "./db.js";
-import { deserialize } from "@puzzpals/puzzle-parser";
+import { type Grid, deserialize } from "@puzzpals/puzzle-parser";
 
 type RoomEntry = {
     token: string;
