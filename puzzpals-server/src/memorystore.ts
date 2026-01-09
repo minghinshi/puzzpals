@@ -44,8 +44,8 @@ export async function createRoomInStore(token: string, puzzleData: Grid) {
     });
 }
 
-export function getAllRoomsFromStore(): Map<string, RoomEntry> {
-    return store;
+export function getListOfRooms(): string[] {
+    return Array.from(store.keys());
 }
 
 export function markAsDirty(room: RoomEntry) {
