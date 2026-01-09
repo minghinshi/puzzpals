@@ -4,8 +4,8 @@
         @update-cell="(idx, val) => emit('updateCell', idx, val)" 
         ref="gridComponent" 
     />
-    <button @click="undo">Undo</button>
-    <button @click="redo">Redo</button>
+    <button @click="undo" aria-label="Undo last move">Undo</button>
+    <button @click="redo" aria-label="Redo last move">Redo</button>
 </template>
 <script setup lang="ts">
 import { useTemplateRef } from 'vue';
