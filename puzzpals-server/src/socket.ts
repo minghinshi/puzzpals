@@ -1,35 +1,51 @@
 import type { Server } from 'socket.io';
-import { createEmptyGrid, grids } from './grid.js';
-import { parsePuzzle } from '@puzzpals/puzzle-parser';
-import Room from './models/Room.js';
+import { createEmptyGrid } from './grid.js';
+import { isDirty, markAsClean, markAsDirty, getRoomFromStore, getListOfRooms } from './memorystore.js';
+import { initDb, closeDb, upsertRoom } from './db.js';
+import { serialize } from '@puzzpals/puzzle-parser';
+
+let interval: NodeJS.Timeout | null = null;
 
 function init(io: Server) {
+  initDb();
+
   io.on('connection', socket => {
     socket.on('room:join', async data => {
-
       const token = data.token;
       console.log("joined");
       socket.join(token);
 
-      let grid = grids.get(token);
-      if (!grid) {
-        const puzzleData = await Room.findOne({ token }).then(r => r === null ? null : r.puzzleData);
-        grid = puzzleData === null ? createEmptyGrid() : parsePuzzle(puzzleData);
-        grids.set(token, grid);
+      const room = getRoomFromStore(token);
+      
+      if (!room) {
+        return;
       }
 
-      socket.emit('grid:state', grid);
+      const grid = room.puzzleData || null;
+      if (!grid) {
+        socket.emit('grid:state', createEmptyGrid());
+      } else {
+        socket.emit('grid:state', grid);
+      }
     });
 
     socket.on('grid:updateCell', data => {
       const { token, idx, value } = data;
-      const grid = grids.get(token);
+
+      const room = getRoomFromStore(token);
+      if (!room) {
+        return;
+      }
+
+      const grid = room.puzzleData;
 
       if (!grid) {
         return;
       }
 
-      grids.get(token).cells[idx].setData(value);
+      // TODO: Data validation
+      grid.cells[idx]?.setData(value);
+      markAsDirty(room);
 
       // Emit the update to all clients in the room (including the sender)
       io.to(token).emit('grid:cellUpdated', { idx, value });
@@ -43,6 +59,35 @@ function init(io: Server) {
     socket.on('room:leave', data => handleDisconnect(data));
     socket.on('disconnect', data => handleDisconnect(data));
   });
+
+  interval = setInterval(autosave, 60 * 1000); // every 60 seconds
 }
 
-export default init;
+function autosave() {
+  for (const token of getListOfRooms()) {
+    const room = getRoomFromStore(token);
+    if (room && isDirty(room)) {
+      console.log("Autosaving room:", token);
+      // If we put mark as clean after saving, then there's a chance that
+      // new changes could be made before we mark as clean, which causes data loss.
+      markAsClean(room);
+      const serializedData = serialize(room.puzzleData);
+      upsertRoom(token, serializedData);
+    }
+  }
+}
+
+// Save to DB on shutdown to prevent data loss
+async function stop(io: Server) {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+  }
+  io.close();
+
+  // Save to the database one last time
+  autosave();
+  closeDb();
+}
+
+export { init, stop };
