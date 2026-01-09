@@ -1,4 +1,4 @@
-import { Cell, NO_INPUT, type Grid } from "../types/Akari.js";
+import { Cell, NO_INPUT, type Grid, type PuzzleType } from "../types/Akari.js";
 
 const validChars = new Set(["0", "1", "2", "3", "4", ".", "#"]);
 
@@ -64,7 +64,7 @@ function parse(input: unknown): Grid {
         rows: gridData.length,
         cols: expectedCols,
         cells,
-        type: "akari"
+        type: "akari" as PuzzleType
     };
 }
 

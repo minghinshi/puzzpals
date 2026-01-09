@@ -10,33 +10,32 @@ type RoomEntry = {
 
 const store = new Map<string, RoomEntry>();
 
-export async function getRoomFromStore(token: string): Promise<RoomEntry | null> {
+export function getRoomFromStore(token: string): RoomEntry | null {
     const roomEntry = store.get(token);
-    if (!roomEntry) {
-        // Fetch from db
-        const dbEntry = await fetchRoom(token);
-        if (dbEntry && typeof dbEntry.puzzle_data === 'string') {
-            try {
-                const parsedData = deserialize(dbEntry.puzzle_data);
-                const roomEntry = {
-                    token: dbEntry.token,
-                    puzzleData: parsedData as Grid,
-                    isDirty: false,
-                }
-                if (roomEntry) {
-                    store.set(token, roomEntry);
-                    return roomEntry;
-                }
-            } catch (e) {
-                console.error("Failed to parse puzzle data from DB for token:", token, e);
-            }
-        }
-        return null;
+
+    if (roomEntry !== null && roomEntry !== undefined) {
+        return roomEntry;
     }
-    return store.get(token) || null;
+    // Fetch from db
+    const dbEntry = fetchRoom(token);
+    if (dbEntry && typeof dbEntry.puzzle_data === 'string') {
+        try {
+            const parsedData = deserialize(dbEntry.puzzle_data);
+            const roomEntry = {
+                token: dbEntry.token,
+                puzzleData: parsedData as Grid,
+                isDirty: false,
+            }
+            store.set(token, roomEntry);
+            return roomEntry;
+        } catch (e) {
+            console.error("Failed to parse puzzle data from DB for token:", token, e);
+        }
+    }
+    return null;
 }
 
-export async function createRoomInStore(token: string, puzzleData: Grid) {
+export function createRoomInStore(token: string, puzzleData: Grid) {
     store.set(token, { 
         token, 
         puzzleData,

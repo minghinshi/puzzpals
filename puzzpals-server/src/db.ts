@@ -27,12 +27,12 @@ function createTable() {
     db.prepare(sql).run();
 }
 
-async function upsertRoom(token: string, puzzleJson: string) {
+function upsertRoom(token: string, puzzleJson: string) {
     const sql = `INSERT OR REPLACE INTO rooms (token, puzzle_data) VALUES (?, ?)`
     db?.prepare(sql).run(token, puzzleJson);
 }
 
-async function fetchRoom(token: string) {
+function fetchRoom(token: string) {
     const sql = "SELECT * FROM rooms WHERE token = ?";
     const row = db?.prepare(sql).get(token) as Room | undefined;
 

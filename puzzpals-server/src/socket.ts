@@ -15,7 +15,7 @@ function init(io: Server) {
       console.log("joined");
       socket.join(token);
 
-      const room = await getRoomFromStore(token);
+      const room = getRoomFromStore(token);
       
       if (!room) {
         return;
@@ -29,10 +29,10 @@ function init(io: Server) {
       }
     });
 
-    socket.on('grid:updateCell', async data => {
+    socket.on('grid:updateCell', data => {
       const { token, idx, value } = data;
 
-      const room = await getRoomFromStore(token);
+      const room = getRoomFromStore(token);
       if (!room) {
         return;
       }
@@ -43,6 +43,7 @@ function init(io: Server) {
         return;
       }
 
+      // TODO: Data validation
       grid.cells[idx]?.setData(value);
       markAsDirty(room);
 
@@ -62,14 +63,16 @@ function init(io: Server) {
   interval = setInterval(autosave, 60 * 1000); // every 60 seconds
 }
 
-async function autosave() {
+function autosave() {
   for (const token of getListOfRooms()) {
-    const room = await getRoomFromStore(token);
+    const room = getRoomFromStore(token);
     if (room && isDirty(room)) {
-      // Prevent concurrent issues
+      console.log("Autosaving room:", token);
+      // If we put mark as clean after saving, then there's a chance that
+      // new changes could be made before we mark as clean, which causes data loss.
       markAsClean(room);
       const serializedData = serialize(room.puzzleData);
-      await upsertRoom(token, serializedData);
+      upsertRoom(token, serializedData);
     }
   }
 }
@@ -83,7 +86,7 @@ async function stop(io: Server) {
   io.close();
 
   // Save to the database one last time
-  await autosave();
+  autosave();
   closeDb();
 }
 

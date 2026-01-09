@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getRoomFromStore, createRoomInStore } from 'src/memorystore.js';
+import { getRoomFromStore, createRoomInStore } from '../memorystore.js';
 import { parsePuzzle } from '@puzzpals/puzzle-parser';
 
 const router = Router();
@@ -15,18 +15,17 @@ function makeToken(length = 6) {
 }
 
 // TODO: Fix concurrency issue where token has a very small chance of clashing
-async function generateToken() {
+function generateToken() {
   let token;
   // Collision check
   for (let i = 0; i < 5; i++) {
     token = makeToken(6);
-    const exists = await getRoomFromStore(token);
-    if (!exists) break;
+    const exists = getRoomFromStore(token);
+    if (!exists) {
+      return token;
+    }
   }
-  if (!token) 
-    return null;
-
-  return token;
+  return null;
 }
 
 // Create room by uploading a file
@@ -34,45 +33,46 @@ router.post('/create', async (req, res) => {
 
   // Test parse file 
   const puzzleData = req.body;
+  let token;
   try {
     const puzzle = parsePuzzle(puzzleData);
 
-    const token = await generateToken();
+    token = generateToken();
     if (token === null) {
       return res.status(500).json({ error: 'Could not create room, please try again' });
     }
 
     createRoomInStore(token, puzzle);
 
-    res.json({
-      token: token
-    })
   } catch (e) {
     return res.status(400).json({ error: 'Invalid puzzle data' });
   }
 
+  res.json({
+    token: token
+  })
 });
 
 // Get room by token
-router.get('/:token', async (req, res) => {
+router.get('/:token', (req, res) => {
   const { token } = req.params;
-  const room = await getRoomFromStore(token);
+  const room = getRoomFromStore(token);
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({ room });
 });
 
 // Join room
-router.post('/:token/join', async (req, res) => {
+router.post('/:token/join', (req, res) => {
   const { token } = req.params;
-  const room = await getRoomFromStore(token);
+  const room = getRoomFromStore(token);
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({ room });
 });
 
 // Leave room
-router.post('/:token/leave', async (req, res) => {
+router.post('/:token/leave', (req, res) => {
   const { token } = req.params;
-  const room = await getRoomFromStore(token);
+  const room = getRoomFromStore(token);
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({ room });
 })
