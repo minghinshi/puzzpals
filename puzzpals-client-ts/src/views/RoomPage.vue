@@ -1,9 +1,13 @@
 <template>
-  <div v-if="!gridState">Joining room...</div>
+  <div v-if="!initialGridState">Joining room...</div>
   <div v-else>
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
-    <AkariGrid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
+    <PuzzleArea 
+      :initial-grid-state="initialGridState" 
+      @update-cell="onCellUpdated" 
+      ref="areaComponent"
+    ></PuzzleArea>
   </div>
 </template>
 
@@ -13,16 +17,16 @@ import { useRouter } from 'vue-router';
 
 import api from '@/services/api';
 import socket from '@/socket';
+import PuzzleArea from '@/components/PuzzleArea.vue';
 
-import AkariGrid from '@/components/AkariGrid.vue';
 import type CellState from '@/models/CellState';
 import type GridState from '@/models/GridState';
 
 const router = useRouter();
 
 const room: Ref<{ token: string; } | null> = ref(null);
-const gridState: Ref<GridState | null> = ref(null);
-const gridComponent = useTemplateRef("gridComponent");
+const initialGridState: Ref<GridState | null> = ref(null);
+const areaComponent = useTemplateRef("areaComponent");
 
 const props = defineProps({
   token: { type: String, required: true }
@@ -70,15 +74,15 @@ function onCellUpdated(idx: number, value: CellState) {
 
 function initiateSocket() {
   socket.on('grid:state', (data: GridState) => {
-    gridState.value = data;
+    initialGridState.value = data;
   });
 
   socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {
-    if (gridComponent.value === null) {
-      throw new Error("Grid is missing");
-    }
     const { idx, value } = data;
-    gridComponent.value.onCellUpdated(idx, value);
+    if (areaComponent.value === null) {
+      throw new Error("areaComponent is missing");
+    };
+    areaComponent.value.onCellUpdated(idx, value);
   });
 }
 
