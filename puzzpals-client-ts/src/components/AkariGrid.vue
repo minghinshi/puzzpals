@@ -1,10 +1,18 @@
 <template>
   <div class="grid-wrapper">
-    <div class="grid" :style="{
-      gridTemplateColumns: `repeat(${gridState.cols}, 1fr)`,
-      gridTemplateRows: `repeat(${gridState.rows}, 1fr)`
-    }">
-      <AkariCell v-for="(cell, idx) in cells" :key="idx" :idx="idx" :cell="cell" @left-click="onCellClicked"
+    <div 
+      class="grid" 
+      :style="{
+        gridTemplateColumns: `repeat(${gridState.cols}, 1fr)`,
+        gridTemplateRows: `repeat(${gridState.rows}, 1fr)`
+      }"
+    >
+      <AkariCell 
+        v-for="(cell, idx) in cells" 
+        :key="idx" 
+        :idx="idx" 
+        :cell="cell" 
+        @left-click="onCellClicked"
         @right-click="onCellRightClicked" />
     </div>
   </div>
@@ -58,6 +66,7 @@ function undo() {
     const cell = getCell(entry.idx);
     const currentState = cell.state;
     onCellUpdated(entry.idx, entry.prevState);
+    emit('updateCell', entry.idx, entry.prevState);
     undoStack.redo.push({ idx: entry.idx, prevState: currentState });
   }
 }
@@ -68,6 +77,7 @@ function redo() {
     const cell = getCell(entry.idx);
     const currentState = cell.state;
     onCellUpdated(entry.idx, entry.prevState);
+    emit('updateCell', entry.idx, entry.prevState);
     undoStack.undo.push({ idx: entry.idx, prevState: currentState });
   }
 }
