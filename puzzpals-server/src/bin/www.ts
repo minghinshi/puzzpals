@@ -105,14 +105,14 @@ function onListening() {
  * Shut down the server gracefully
  */
 
-function gracefulShutdown() {
-  console.log("Gracefully shutting down...");
+function shutdown() {
+  console.log("Shutting down...");
   server.close(() => { process.exit(0); });
   // stop io and save data to DB to prevent data loss
   stop(io);
 }
 
-process.on('exit', () => gracefulShutdown());
+process.on('exit', () => shutdown());
 process.on('SIGHUP', () => process.exit(128 + 1));
 process.on('SIGINT', () => process.exit(128 + 2));
 process.on('SIGTERM', () => process.exit(128 + 15));
