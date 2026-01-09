@@ -17,7 +17,8 @@ function initDb(dbPath?: string) {
 
 function createTable() {
     if (!db) { 
-        return;
+        console.error('Failed to create tables: database is not initialized. Call initDb() before using the database.');
+        throw new Error('Cannot create tables: database is not initialized.');
     }
 
     const sql = `CREATE TABLE IF NOT EXISTS rooms (
