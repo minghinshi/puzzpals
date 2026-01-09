@@ -12,3 +12,5 @@ A Japanese logic puzzle website where you can solve the same puzzle with others 
 ### About DB
 
 This project uses sqlite to store puzzle data. It is automatically created at `puzzpals-data.db`. To reset the db simply delete the file.
+- Install sqlite3 on linux
+- You can install the plugin "SQLite Viewer" to view the database after installing sqlite3

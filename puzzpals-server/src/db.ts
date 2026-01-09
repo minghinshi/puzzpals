@@ -21,7 +21,7 @@ function createTable() {
         throw new Error('Cannot create tables: database is not initialized.');
     }
 
-    const sql = `CREATE TABLE IF NOT EXISTS rooms (
+    const sql = `CREATE TABLE IF NOT EXISTS Room (
         token TEXT PRIMARY KEY UNIQUE,
         puzzle_data TEXT
     )`
@@ -29,12 +29,12 @@ function createTable() {
 }
 
 function upsertRoom(token: string, puzzleJson: string) {
-    const sql = `INSERT OR REPLACE INTO rooms (token, puzzle_data) VALUES (?, ?)`
+    const sql = `INSERT OR REPLACE INTO Room (token, puzzle_data) VALUES (?, ?)`
     db?.prepare(sql).run(token, puzzleJson);
 }
 
 function fetchRoom(token: string) {
-    const sql = "SELECT * FROM rooms WHERE token = ?";
+    const sql = "SELECT * FROM Room WHERE token = ?";
     const row = db?.prepare(sql).get(token) as Room | undefined;
 
     if (!row) {
