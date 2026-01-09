@@ -1,6 +1,6 @@
 <template>
     <AkariGrid 
-        :grid-state="initGridState" 
+        :initial-grid-state="initialGridState" 
         @update-cell="(idx, val) => emit('updateCell', idx, val)" 
         ref="gridComponent" 
     />
@@ -16,7 +16,7 @@ import type CellState from '@/models/CellState';
 const emit = defineEmits(['updateCell']);
 
 const props = defineProps<{
-  initGridState: GridState;
+  initialGridState: GridState;
 }>();
 
 const gridComponent = useTemplateRef("gridComponent");

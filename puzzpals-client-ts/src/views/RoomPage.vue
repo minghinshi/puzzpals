@@ -1,10 +1,10 @@
 <template>
-  <div v-if="!initGridState">Joining room...</div>
+  <div v-if="!initialGridState">Joining room...</div>
   <div v-else>
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
     <PuzzleArea 
-      :init-grid-state="initGridState" 
+      :initial-grid-state="initialGridState" 
       @update-cell="onCellUpdated" 
       ref="areaComponent"
     ></PuzzleArea>
@@ -25,7 +25,7 @@ import type GridState from '@/models/GridState';
 const router = useRouter();
 
 const room: Ref<{ token: string; } | null> = ref(null);
-const initGridState: Ref<GridState | null> = ref(null);
+const initialGridState: Ref<GridState | null> = ref(null);
 const areaComponent = useTemplateRef("areaComponent");
 
 const props = defineProps({
@@ -74,7 +74,7 @@ function onCellUpdated(idx: number, value: CellState) {
 
 function initiateSocket() {
   socket.on('grid:state', (data: GridState) => {
-    initGridState.value = data;
+    initialGridState.value = data;
   });
 
   socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {

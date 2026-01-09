@@ -3,8 +3,8 @@
     <div 
       class="grid" 
       :style="{
-        gridTemplateColumns: `repeat(${gridState.cols}, 1fr)`,
-        gridTemplateRows: `repeat(${gridState.rows}, 1fr)`
+        gridTemplateColumns: `repeat(${initialGridState.cols}, 1fr)`,
+        gridTemplateRows: `repeat(${initialGridState.rows}, 1fr)`
       }"
     >
       <AkariCell 
@@ -27,65 +27,65 @@ import type CellState from "@/models/CellState";
 import type GridState from "@/models/GridState";
 
 const props = defineProps<{
-  gridState: GridState;
+  initialGridState: GridState;
 }>();
 
 const emit = defineEmits(['updateCell']);
 
 const cells: Ref<Cell[]> = ref([]);
 
-const rows = props.gridState.rows;
-const cols = props.gridState.cols;
+const rows = props.initialGridState.rows;
+const cols = props.initialGridState.cols;
 let hasWon = false;
 
 // Undo / Redo functionality
-const MAX_UNDO = 100;
+const MAX_UNDO = 300;
 
-type UndoStackEntry = {
+type UndoRedoStackEntry = {
   idx: number;
   prevState: CellState;
 };
 
-const undoStack = {
-  undo: [] as UndoStackEntry[],
-  redo: [] as UndoStackEntry[]
+const undoRedoStack = {
+  undo: [] as UndoRedoStackEntry[],
+  redo: [] as UndoRedoStackEntry[]
 }
 
-function updateUndoStack(idx: number, prevState: CellState) {
-  undoStack.undo.push({ idx, prevState });
-  undoStack.redo = [];
+function updateUndoRedoStack(idx: number, prevState: CellState) {
+  undoRedoStack.undo.push({ idx, prevState });
+  undoRedoStack.redo = [];
 
-  if (undoStack.undo.length > MAX_UNDO) {
-    undoStack.undo.shift();
+  if (undoRedoStack.undo.length > MAX_UNDO) {
+    undoRedoStack.undo.shift();
   }
 }
 
 function undo() {
-  const entry = undoStack.undo.pop();
+  const entry = undoRedoStack.undo.pop();
   if (entry) {
     const cell = getCell(entry.idx);
     const currentState = cell.state;
     onCellUpdated(entry.idx, entry.prevState);
     emit('updateCell', entry.idx, entry.prevState);
-    undoStack.redo.push({ idx: entry.idx, prevState: currentState });
+    undoRedoStack.redo.push({ idx: entry.idx, prevState: currentState });
   }
 }
 
 function redo() {
-  const entry = undoStack.redo.pop();
+  const entry = undoRedoStack.redo.pop();
   if (entry) {
     const cell = getCell(entry.idx);
     const currentState = cell.state;
     onCellUpdated(entry.idx, entry.prevState);
     emit('updateCell', entry.idx, entry.prevState);
-    undoStack.undo.push({ idx: entry.idx, prevState: currentState });
+    undoRedoStack.undo.push({ idx: entry.idx, prevState: currentState });
   }
 }
 
 function onCellClicked(cell: Cell) {
   const prevState = cell.state;
   if (cell.toggleLightBulb()) {
-    updateUndoStack(cell.idx, prevState);
+    updateUndoRedoStack(cell.idx, prevState);
     emit('updateCell', cell.idx, cell.state);
   }
 }
@@ -93,7 +93,7 @@ function onCellClicked(cell: Cell) {
 function onCellRightClicked(cell: Cell) {
   const prevState = cell.state;
   if (cell.toggleNote()) {
-    updateUndoStack(cell.idx, prevState);
+    updateUndoRedoStack(cell.idx, prevState);
     emit('updateCell', cell.idx, cell.state);
   }
 }
@@ -182,7 +182,7 @@ const keyboardListener = (e: KeyboardEvent) => {
 
 onBeforeMount(() => {
   // Convert CellStates to Cell objects
-  props.gridState.cells.forEach((cellState, idx) => {
+  props.initialGridState.cells.forEach((cellState, idx) => {
     const cell = new Cell(idx);
     cell.setState(cellState);
     cells.value.push(cell);
