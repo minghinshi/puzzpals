@@ -3,6 +3,8 @@ import { createEmptyGrid } from './grid.js';
 import { isDirty, markAsClean, markAsDirty, getRoomFromStore, getListOfRooms } from './memorystore.js';
 import { initDb, closeDb, upsertRoom } from './db.js';
 import { serialize } from '@puzzpals/puzzle-parser';
+import { processChatMessage } from './chat.js';
+import { randomUserID } from './user.js';
 
 let interval: NodeJS.Timeout | null = null;
 
@@ -12,14 +14,17 @@ function init(io: Server) {
   io.on('connection', socket => {
     socket.on('room:join', async data => {
       const token = data.token;
-      console.log("joined");
+      const userID = randomUserID(token);
+      console.log("joined", userID);
       socket.join(token);
 
       const room = getRoomFromStore(token);
-      
+
       if (!room) {
         return;
       }
+
+      socket.emit('user:id', userID);
 
       const grid = room.puzzleData || null;
       if (!grid) {
@@ -49,6 +54,16 @@ function init(io: Server) {
 
       // Emit the update to all clients in the room (including the sender)
       io.to(token).emit('grid:cellUpdated', { idx, value });
+    });
+
+    socket.on('chat:newMessage', data => {
+      const { token, message } = data;
+      const processed = processChatMessage(message);
+      if (!processed) {
+        console.log("Invalid chat message received:", message);
+        return;
+      }
+      io.to(token).emit('chat:messageNew', processed);
     });
 
     const handleDisconnect = (data: any) => {

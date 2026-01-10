@@ -3,11 +3,12 @@
   <div v-else>
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
-    <PuzzleArea 
-      :initial-grid-state="initialGridState" 
-      @update-cell="onCellUpdated" 
+    <PuzzleArea
+      :initial-grid-state="initialGridState"
+      @update-cell="onCellUpdated"
       ref="areaComponent"
     ></PuzzleArea>
+    <Chat :chat-state="chatState" :userID="userID" @newMessage="onChatSubmit" ref="chatComponent" />
   </div>
 </template>
 
@@ -21,6 +22,9 @@ import PuzzleArea from '@/components/PuzzleArea.vue';
 
 import type CellState from '@/models/CellState';
 import type GridState from '@/models/GridState';
+import Chat from '@/components/Chat.vue';
+import type ChatState from '@/models/ChatState';
+import type { ChatMessage } from '@/models/ChatState';
 
 const router = useRouter();
 
@@ -28,6 +32,10 @@ const room: Ref<{ token: string; } | null> = ref(null);
 const initialGridState: Ref<GridState | null> = ref(null);
 const areaComponent = useTemplateRef("areaComponent");
 
+const chatState: Ref<ChatState> = ref({messages: []});
+const chatComponent = useTemplateRef("chatComponent");
+
+const userID = ref<string | null>(null);
 const props = defineProps({
   token: { type: String, required: true }
 });
@@ -72,7 +80,20 @@ function onCellUpdated(idx: number, value: CellState) {
   socket.emit('grid:updateCell', { token: props.token, idx, value });
 }
 
+function onChatSubmit(message: ChatMessage) {
+  if (userID.value) {
+    message.user = userID.value;
+  }
+  socket.emit('chat:newMessage', { token: props.token, message: message });
+}
+
+
 function initiateSocket() {
+  // TODO
+  socket.on('user:id', (id: string) => {
+    userID.value = id;
+  });
+
   socket.on('grid:state', (data: GridState) => {
     initialGridState.value = data;
   });
@@ -83,6 +104,22 @@ function initiateSocket() {
       throw new Error("areaComponent is missing");
     };
     areaComponent.value.onCellUpdated(idx, value);
+  });
+
+  // socket.on('chat:records', (history) => {
+  //   if (chatComponent.value === null) {
+  //     throw new Error("Chat Block is missing");
+  //   }
+  //   chatState.value.messages.splice(0, chatState.value.messages.length, ...history);
+  //   chatComponent.value.scrollToBottom();
+  // });
+
+  socket.on('chat:messageNew', (msgBlock) => {
+    if (chatComponent.value === null) {
+      throw new Error("Chat Block is missing");
+    }
+    chatState.value.messages.push(msgBlock);
+    chatComponent.value.scrollToBottom();
   });
 }
 
@@ -96,7 +133,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   socket.emit('room:leave', { token: props.token });
-  socket.off("grid:state");
-  socket.off("grid:cellUpdated");
+  socket.off();
 });
 </script>
