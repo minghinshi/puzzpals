@@ -133,10 +133,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   socket.emit('room:leave', { token: props.token });
-  socket.off("user:id");
-  socket.off("grid:state");
-  socket.off("grid:cellUpdated");
-  socket.off('chat:records');
-  socket.off('chat:messageNew');
+  socket.off();
 });
 </script>

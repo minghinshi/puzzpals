@@ -1,9 +1,8 @@
 <template>
   <div class="chat-container">
     <div class="chat-window" ref="chatWindowRef">
-      <div v-for="(msg, i) in props.chatState.messages" :key="i" class="chat-message"
-        :class="{ 'my-message': msg.user === props.userID, 'other-message': msg.user !== props.userID }">
-        <ChatBubble :msg="msg" />
+      <div v-for="(msg, i) in props.chatState.messages" :key="i" class="chat-message">
+        <ChatBubble :msg="msg" :currentUserID="props.userID" />
       </div>
     </div>
     <form class="chat-input" @submit.prevent="send">
@@ -76,33 +75,13 @@ function scrollToBottom() {
   margin-bottom: 4px;
 }
 
-.my-message {
+/* .my-message {
   justify-content: flex-end;
 }
 
 .other-message {
   justify-content: flex-start;
-}
-
-.other-message .bubble {
-  background: #f1f1f1;
-  color: #222;
-  align-items: flex-start;
-}
-
-.my-message .bubble {
-  background: #26cda9;
-  color: #fff;
-  align-items: flex-end;
-}
-
-.my-message .chat-header {
-  color: #e0fff6;
-}
-
-.other-message .chat-header {
-  color: #555;
-}
+} */
 
 .chat-input {
   display: flex;
