@@ -84,6 +84,7 @@ function scrollToBottom() {
   min-height: 36px;
   min-width: 100px;
   border: 1px solid #ccc;
+  text-align: left;
 }
 
 .chat-input button {
