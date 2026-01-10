@@ -11,8 +11,10 @@ import usersRouter from "./routes/users.js";
 
 const app = express();
 
+const CLIENT_BASE_URL = process.env.CLIENT_BASE_URL!;
+
 const corsOptions = {
-  origin: process.env.CLIENT_BASE_URL
+  origin: CLIENT_BASE_URL
 };
 app.use(cors(corsOptions));
 

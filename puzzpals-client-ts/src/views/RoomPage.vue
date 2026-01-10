@@ -1,31 +1,36 @@
 <template>
-  <div v-if="!gridState">Joining room...</div>
+  <div v-if="!initialGridState">Joining room...</div>
   <div v-else>
     <h2>Room {{ token }}</h2>
     <button @click="leave">Leave</button>
-    <AkariGrid :grid-state="gridState" @update-cell="onCellUpdated" ref="gridComponent" />
-    <Chat :chat-state="chatState" :userID="userID" @newMessage="onChatSubmit" ref="chatComponent" />  </div>
+    <PuzzleArea
+      :initial-grid-state="initialGridState"
+      @update-cell="onCellUpdated"
+      ref="areaComponent"
+    ></PuzzleArea>
+    <Chat :chat-state="chatState" :userID="userID" @newMessage="onChatSubmit" ref="chatComponent" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, type Ref, useTemplateRef } from 'vue';
+import { onBeforeMount, onBeforeUnmount, onMounted, ref, type Ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 
 import api from '@/services/api';
-import { socket } from '@/socket';
+import socket from '@/socket';
+import PuzzleArea from '@/components/PuzzleArea.vue';
 
-import AkariGrid from '@/components/AkariGrid.vue';
-import Chat from '@/components/Chat.vue';
-import type GridState from '@/models/GridState';
 import type CellState from '@/models/CellState';
+import type GridState from '@/models/GridState';
+import Chat from '@/components/Chat.vue';
 import type ChatState from '@/models/ChatState';
 import type { ChatMessage } from '@/models/ChatState';
 
 const router = useRouter();
 
 const room: Ref<{ token: string; } | null> = ref(null);
-const gridState: Ref<GridState | null> = ref(null);
-const gridComponent = useTemplateRef("gridComponent");
+const initialGridState: Ref<GridState | null> = ref(null);
+const areaComponent = useTemplateRef("areaComponent");
 
 const chatState: Ref<ChatState> = ref({messages: []});
 const chatComponent = useTemplateRef("chatComponent");
@@ -35,13 +40,27 @@ const props = defineProps({
   token: { type: String, required: true }
 });
 
+function is404(err: unknown) {
+  return typeof err === 'object' &&
+    err !== null &&
+    'response' in err &&
+    typeof err.response === 'object' &&
+    err.response !== null &&
+    'status' in err.response &&
+    err.response.status === 404;
+}
+
 async function fetchRoom() {
   try {
     const res = await api.get(`/rooms/${props.token}`);
     room.value = res.data.room;
   } catch (err) {
-    console.error(err);
-    router.push('/');
+    if (is404(err)) {
+      router.push('/404');
+    } else {
+      console.error(err);
+      router.push('/');
+    }
   }
 }
 
@@ -70,24 +89,21 @@ function onChatSubmit(message: ChatMessage) {
 
 
 function initiateSocket() {
-  if (!socket.connected) {
-    socket.connect();
-  }
-
+  // TODO
   socket.on('user:id', (id: string) => {
     userID.value = id;
   });
 
   socket.on('grid:state', (data: GridState) => {
-    gridState.value = data;
+    initialGridState.value = data;
   });
 
   socket.on('grid:cellUpdated', (data: { idx: number, value: CellState; }) => {
-    if (gridComponent.value === null) {
-      throw new Error("Grid is missing");
-    }
     const { idx, value } = data;
-    gridComponent.value.onCellUpdated(idx, value);
+    if (areaComponent.value === null) {
+      throw new Error("areaComponent is missing");
+    };
+    areaComponent.value.onCellUpdated(idx, value);
   });
 
   socket.on('chat:records', (history) => {
@@ -107,9 +123,9 @@ function initiateSocket() {
   });
 }
 
-onMounted(async () => {
-  initiateSocket();
+onBeforeMount(initiateSocket);
 
+onMounted(async () => {
   await fetchRoom();
   console.log(`Joining room ${props.token}`);
   await join();
