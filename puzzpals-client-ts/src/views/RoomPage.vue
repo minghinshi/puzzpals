@@ -1,14 +1,44 @@
 <template>
-  <div v-if="!initialGridState">Joining room...</div>
+  <div v-if="!initialGridState" class="joining-text">
+    Joining room {{ token }}...
+  </div>
   <div v-else>
-    <h2>Room {{ token }}</h2>
-    <button @click="leave">Leave</button>
-    <PuzzleArea
-      :initial-grid-state="initialGridState"
-      @update-cell="onCellUpdated"
-      ref="areaComponent"
-    ></PuzzleArea>
-    <Chat :chat-state="chatState" :userID="userID" @newMessage="onChatSubmit" ref="chatComponent" />
+    <div class="solving-page">
+        <header class="top-bar">
+            <h1>Puzzpals</h1>
+            <span class="room-id">Room ID: {{ token }}</span>
+            <button @click="leave">Leave</button>
+        </header>
+
+        <div class="content">
+          <div class="puzzle-pane">
+            <div class="left-inner">
+              <PuzzleArea
+                :initial-grid-state="initialGridState"
+                @update-cell="onCellUpdated"
+                ref="areaComponent"
+              ></PuzzleArea>
+            </div>
+          </div>
+
+          <div class="info-pane">
+            <!--
+                <div class="player-info">
+                    Player info here
+                </div>
+              -->
+
+                <div class="chat-con">
+                  <Chat 
+                    :chat-state="chatState" 
+                    :userID="userID" 
+                    @newMessage="onChatSubmit" 
+                    ref="chatComponent" 
+                  />
+                </div>
+            </div>
+        </div>
+    </div>
   </div>
 </template>
 
@@ -136,3 +166,100 @@ onBeforeUnmount(() => {
   socket.off();
 });
 </script>
+
+<style scoped>
+.joining-text {
+  font-size: 1.5rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+button {
+    min-width: 100px;
+}
+
+input {
+    min-width: 50px;
+}
+
+.solving-page {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-bar {
+    background: linear-gradient(90deg, #26cda9, #2b8de2);
+    color: #fff;
+    padding: 12px 16px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    justify-content: space-between;
+    position: relative;
+}
+
+.room-id {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    text-align: center;
+    pointer-events: none; 
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    box-sizing: border-box;
+    background: #f7f8fb;
+}
+
+.puzzle-pane {
+    flex: 1 1 60%;
+    min-width: 0;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 6px;
+    padding: 12px;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+.info-pane {
+    flex: 1 1 40%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.player-info {
+    height: 100px;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 6px;
+    padding: 12px;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+.chat-con {
+    flex: 1 1;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 6px;
+    padding: 8px; 
+    box-sizing: border-box;
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+</style>

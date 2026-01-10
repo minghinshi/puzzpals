@@ -1,8 +1,16 @@
+<script>
+import './assets/main.css';
+</script>
+
 <template>
-  <header>
-    <h1>Puzzpals</h1>
-  </header>
   <main>
     <RouterView />
   </main>
 </template>
+
+<style>
+main {
+  height: 100%;
+  width: 100%;
+}
+</style>

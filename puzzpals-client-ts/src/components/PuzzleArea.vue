@@ -4,8 +4,10 @@
         @update-cell="(idx, val) => emit('updateCell', idx, val)" 
         ref="gridComponent" 
     />
-    <button @click="undo" aria-label="Undo last move">Undo</button>
-    <button @click="redo" aria-label="Redo last move">Redo</button>
+    <div class="button-con">
+      <button @click="undo" aria-label="Undo last move">Undo</button>
+      <button @click="redo" aria-label="Redo last move">Redo</button>
+    </div>
 </template>
 <script setup lang="ts">
 import { useTemplateRef } from 'vue';
@@ -39,3 +41,12 @@ function onCellUpdated(idx: number, newState: CellState) {
 defineExpose({ onCellUpdated });
 
 </script>
+
+<style scoped>
+.button-con {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+</style>
