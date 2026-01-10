@@ -1,21 +1,9 @@
 <template>
   <div class="chat-container">
     <div class="chat-window" ref="chatWindowRef">
-      <div
-        v-for="(msg, i) in messages"
-        :key="i"
-        class="chat-message"
-        :class="{ 'my-message': msg.user === props.userID, 'other-message': msg.user !== props.userID }"
-      >
-        <div class="bubble">
-          <div class="chat-header">
-            <span class="chat-user">{{ msg.user }}</span>
-          </div>
-          <div class="chat-text">{{ msg.msgtext }}</div>
-          <div class="chat-footer">
-            <span class="chat-time">{{ new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
-          </div>
-        </div>
+      <div v-for="(msg, i) in props.chatState.messages" :key="i" class="chat-message"
+        :class="{ 'my-message': msg.user === props.userID, 'other-message': msg.user !== props.userID }">
+        <ChatBubble :msg="msg" />
       </div>
     </div>
     <form class="chat-input" @submit.prevent="send">
@@ -26,25 +14,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick } from 'vue';
 import type { ChatMessage } from '@/models/ChatState';
+import ChatBubble from './ChatBubble.vue';
 
 const props = defineProps<{ chatState: { messages: ChatMessage[] }, userID: string | null }>();
 const emit = defineEmits(['newMessage']);
 const input = ref('');
 const chatWindowRef = ref<HTMLElement | null>(null);
-const messages = ref<ChatMessage[]>(props.chatState.messages);
 
 defineExpose({ scrollToBottom });
 
 function send() {
   const text = input.value.trim();
-  console.log(text)
   if (text) {
     const message = {
       user: "",
       msgtext: text,
-      timestamp: Date.now()
+      timestamp: 0
     };
     console.log(message)
     emit('newMessage', message);
@@ -97,19 +84,6 @@ function scrollToBottom() {
   justify-content: flex-start;
 }
 
-.bubble {
-  max-width: 75%;
-  padding: 8px 12px;
-  border-radius: 16px;
-  background: #d1f7e7;
-  color: #222;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  word-break: break-word;
-}
-
 .other-message .bubble {
   background: #f1f1f1;
   color: #222;
@@ -122,30 +96,12 @@ function scrollToBottom() {
   align-items: flex-end;
 }
 
-.chat-header {
-  font-weight: bold;
-  font-size: 12px;
-  color: #555;
-  margin-bottom: 2px;
-}
-
 .my-message .chat-header {
   color: #e0fff6;
 }
 
 .other-message .chat-header {
   color: #555;
-}
-
-.chat-text {
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-
-.chat-footer {
-  font-size: 11px;
-  color: #888;
-  align-self: flex-end;
 }
 
 .chat-input {

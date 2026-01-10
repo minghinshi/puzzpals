@@ -3,7 +3,7 @@ import { createEmptyGrid } from './grid.js';
 import { isDirty, markAsClean, markAsDirty, getRoomFromStore, getListOfRooms } from './memorystore.js';
 import { initDb, closeDb, upsertRoom } from './db.js';
 import { serialize } from '@puzzpals/puzzle-parser';
-import { pushMessage, fetchChatRecords } from './chat.js';
+import { processChatMessage } from './chat.js';
 import { randomUserID } from './user.js';
 
 let interval: NodeJS.Timeout | null = null;
@@ -58,8 +58,12 @@ function init(io: Server) {
 
     socket.on('chat:newMessage', data => {
       const { token, message } = data;
-      pushMessage(token, message);
-      io.to(token).emit('chat:messageNew', message);
+      const processed = processChatMessage(message);
+      if (!processed) {
+        console.log("Invalid chat message received:", message);
+        return;
+      }
+      io.to(token).emit('chat:messageNew', processed);
     });
 
     const handleDisconnect = (data: any) => {

@@ -106,13 +106,13 @@ function initiateSocket() {
     areaComponent.value.onCellUpdated(idx, value);
   });
 
-  socket.on('chat:records', (history) => {
-    if (chatComponent.value === null) {
-      throw new Error("Chat Block is missing");
-    }
-    chatState.value.messages.splice(0, chatState.value.messages.length, ...history);
-    chatComponent.value.scrollToBottom();
-  });
+  // socket.on('chat:records', (history) => {
+  //   if (chatComponent.value === null) {
+  //     throw new Error("Chat Block is missing");
+  //   }
+  //   chatState.value.messages.splice(0, chatState.value.messages.length, ...history);
+  //   chatComponent.value.scrollToBottom();
+  // });
 
   socket.on('chat:messageNew', (msgBlock) => {
     if (chatComponent.value === null) {
@@ -133,6 +133,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   socket.emit('room:leave', { token: props.token });
+  socket.off("user:id");
   socket.off("grid:state");
   socket.off("grid:cellUpdated");
   socket.off('chat:records');

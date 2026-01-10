@@ -1,20 +1,35 @@
-type ChatMessage = {
-  user: string;
-  msgtext: string;
-  timestamp: number;
-};
+// type ChatMessage = {
+//   user: string;
+//   msgtext: string;
+//   timestamp: number;
+// };
 
-const chatRecords = new Map<string, ChatMessage[]>(); // roomToken => [ { user, msgtext, timestamp }, ... ]
+// const chatRecords = new Map<string, ChatMessage[]>();
 
-function fetchChatRecords(token: string) {
-  return chatRecords.get(token) || [];
-}
+// function fetchChatRecords(token: string) {
+//   return chatRecords.get(token) || [];
+// }
 
-function pushMessage(token: string, message: ChatMessage) {
-  if (!chatRecords.has(token)) {
-    chatRecords.set(token, []);
+// function pushMessage(token: string, message: ChatMessage) {
+//   if (!chatRecords.has(token)) {
+//     chatRecords.set(token, []);
+//   }
+//   chatRecords.get(token)!.push(message);
+// }
+
+function processChatMessage(raw: any): { user: string, msgtext: string, timestamp: number } | null {
+  if (
+      !raw || typeof raw !== 'object' || typeof raw.user !== 'string' ||
+      typeof raw.msgtext !== 'string' || raw.msgtext.trim() === ''
+  ) {
+    return null;
   }
-  chatRecords.get(token)!.push(message);
+  return {
+    user: raw.user,
+    msgtext: raw.msgtext.trim(),
+    timestamp: Date.now()
+  };
 }
 
-export { chatRecords, fetchChatRecords, pushMessage };
+
+export { processChatMessage };
