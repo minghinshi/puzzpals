@@ -5,7 +5,7 @@ type RoomEntry = {
     token: string;
     puzzleData: Grid;
     isDirty?: boolean;
-}
+};
 
 const store = new Map<string, RoomEntry>();
 
@@ -24,7 +24,7 @@ export function getRoomFromStore(token: string): RoomEntry | null {
                 token: dbEntry.token,
                 puzzleData: parsedData as Grid,
                 isDirty: false,
-            }
+            };
             store.set(token, roomEntry);
             return roomEntry;
         } catch (e) {
@@ -35,8 +35,8 @@ export function getRoomFromStore(token: string): RoomEntry | null {
 }
 
 export function createRoomInStore(token: string, puzzleData: Grid) {
-    store.set(token, { 
-        token, 
+    store.set(token, {
+        token,
         puzzleData,
         isDirty: true
     });
@@ -56,4 +56,9 @@ export function markAsClean(room: RoomEntry) {
 
 export function isDirty(room: RoomEntry): boolean {
     return room.isDirty === true;
+}
+
+// For tests only!
+export function __resetForTests() {
+    store.clear();
 }

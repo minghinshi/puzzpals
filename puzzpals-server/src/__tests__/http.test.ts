@@ -1,10 +1,25 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 import request from "supertest";
 
-import app from "../app.js";
+import app from "src/app.js";
+import { closeDb, initDb } from "src/db.js";
+import { __resetForTests } from "src/memorystore.js";
+
+function setUp() {
+  // In-memory databases are deleted when closed
+  initDb(":memory:");
+}
+
+function tearDown() {
+  closeDb();
+  __resetForTests();
+}
 
 describe("Create room API", () => {
+  beforeEach(setUp);
+  afterEach(tearDown);
+
   it("can create room", async () => {
     const payload = {
       "type": "akari",
@@ -108,6 +123,9 @@ describe("Create room API", () => {
 });
 
 describe("HTTP endpoints", () => {
+  beforeEach(setUp);
+  afterEach(tearDown);
+
   it("can join players to rooms", async () => {
     const payload = {
       "type": "akari",
