@@ -122,7 +122,7 @@ describe("Create room API", () => {
   });
 });
 
-describe("HTTP endpoints", () => {
+describe("Join room API", () => {
   beforeEach(setUp);
   afterEach(tearDown);
 
@@ -137,5 +137,10 @@ describe("HTTP endpoints", () => {
 
     const joinRes = await request(app).post(`/api/rooms/${token}/join`);
     assert.equal(joinRes.status, 200);
+  });
+
+  it("rejects request to join non-existent room", async () => {
+    const res = await request(app).post(`/api/rooms/TestRm/join`);
+    assert.equal(res.status, 404);
   });
 });
