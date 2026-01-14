@@ -1,16 +1,10 @@
 import type { Server } from 'socket.io';
-import { createEmptyGrid } from './grid.js';
-import { isDirty, markAsClean, markAsDirty, getRoomFromStore, getListOfRooms } from './memorystore.js';
-import { initDb, closeDb, upsertRoom } from './db.js';
-import { serialize } from '@puzzpals/puzzle-parser';
+import { createEmptyGrid } from '@puzzpals/puzzle-parser';
+import { markAsDirty, getRoomFromStore } from './memorystore.js';
 import { processChatMessage } from './chat.js';
 import { randomUserID } from './user.js';
 
-let interval: NodeJS.Timeout | null = null;
-
 function init(io: Server) {
-  initDb();
-
   io.on('connection', socket => {
     socket.on('room:join', async data => {
       const token = data.token;
@@ -74,35 +68,6 @@ function init(io: Server) {
     socket.on('room:leave', data => handleDisconnect(data));
     socket.on('disconnect', data => handleDisconnect(data));
   });
-
-  interval = setInterval(autosave, 60 * 1000); // every 60 seconds
 }
 
-function autosave() {
-  for (const token of getListOfRooms()) {
-    const room = getRoomFromStore(token);
-    if (room && isDirty(room)) {
-      console.log("Autosaving room:", token);
-      // If we put mark as clean after saving, then there's a chance that
-      // new changes could be made before we mark as clean, which causes data loss.
-      markAsClean(room);
-      const serializedData = serialize(room.puzzleData);
-      upsertRoom(token, serializedData);
-    }
-  }
-}
-
-// Save to DB on shutdown to prevent data loss
-async function stop(io: Server) {
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
-  io.close();
-
-  // Save to the database one last time
-  autosave();
-  closeDb();
-}
-
-export { init, stop };
+export { init };

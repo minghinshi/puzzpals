@@ -17,13 +17,19 @@ import debug from 'debug';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import app from '../app.js';
-import { init, stop } from '../socket.js';
+import { init } from '../socket.js';
+import { closeDb, initDb } from 'src/db.js';
+import { startAutosave, stopAutosave } from 'src/memorystore.js';
 
 const serverDebugger = debug('puzzpals-server:server');
 
 // Get port from environment and store in Express
 const port = normalizePort(process.env.PORT);
 app.set('port', port);
+
+// Initialize database and memory store
+initDb();
+startAutosave();
 
 // Create HTTP server
 const server = createServer(app);
@@ -108,8 +114,11 @@ function onListening() {
 function shutdown() {
   console.log("Shutting down...");
   server.close(() => { process.exit(0); });
+
   // stop io and save data to DB to prevent data loss
-  stop(io);
+  io.close();
+  stopAutosave();
+  closeDb();
 }
 
 process.on('exit', () => shutdown());

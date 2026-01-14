@@ -1,5 +1,5 @@
-import { fetchRoom } from "./db.js";
-import { type Grid, deserialize } from "@puzzpals/puzzle-parser";
+import { fetchRoom, upsertRoom } from "./db.js";
+import { type Grid, deserialize, serialize } from "@puzzpals/puzzle-parser";
 
 type RoomEntry = {
     token: string;
@@ -7,6 +7,7 @@ type RoomEntry = {
     isDirty?: boolean;
 };
 
+let interval: NodeJS.Timeout | null = null;
 const store = new Map<string, RoomEntry>();
 
 export function getRoomFromStore(token: string): RoomEntry | null {
@@ -42,7 +43,7 @@ export function createRoomInStore(token: string, puzzleData: Grid) {
     });
 }
 
-export function getListOfRooms(): string[] {
+function getListOfRooms(): string[] {
     return Array.from(store.keys());
 }
 
@@ -50,12 +51,41 @@ export function markAsDirty(room: RoomEntry) {
     room.isDirty = true;
 }
 
-export function markAsClean(room: RoomEntry) {
+function markAsClean(room: RoomEntry) {
     room.isDirty = false;
 }
 
-export function isDirty(room: RoomEntry): boolean {
+function isDirty(room: RoomEntry): boolean {
     return room.isDirty === true;
+}
+
+export function startAutosave() {
+    // Autosave every 60 seconds
+    interval = setInterval(autosave, 60 * 1000);
+}
+
+export function stopAutosave() {
+    if (interval) {
+        clearInterval(interval);
+        interval = null;
+    }
+
+    // Save to the database one last time
+    autosave();
+}
+
+function autosave() {
+    for (const token of getListOfRooms()) {
+        const room = getRoomFromStore(token);
+        if (room && isDirty(room)) {
+            console.log("Autosaving room:", token);
+            // If we put mark as clean after saving, then there's a chance that
+            // new changes could be made before we mark as clean, which causes data loss.
+            markAsClean(room);
+            const serializedData = serialize(room.puzzleData);
+            upsertRoom(token, serializedData);
+        }
+    }
 }
 
 // For tests only!
