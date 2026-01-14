@@ -10,7 +10,6 @@ function assertEnvExists(variable: string | undefined, name: string): asserts va
 }
 
 assertEnvExists(process.env.PORT, "PORT");
-assertEnvExists(process.env.MONGO_URI, "MONGO_URI");
 assertEnvExists(process.env.CLIENT_BASE_URL, "CLIENT_BASE_URL");
 
 import debug from 'debug';
