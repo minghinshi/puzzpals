@@ -3,22 +3,11 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 import request from "supertest";
 
 import app from "src/app.js";
-import { closeDb, initDb } from "src/db.js";
-import { __resetForTests } from "src/memorystore.js";
-
-function setUp() {
-  // In-memory databases are deleted when closed
-  initDb(":memory:");
-}
-
-function tearDown() {
-  closeDb();
-  __resetForTests();
-}
+import { arrangeBeforeEach, cleanUpAfterEach } from "./utils/arrange.js";
 
 describe("Create room API", () => {
-  beforeEach(setUp);
-  afterEach(tearDown);
+  beforeEach(arrangeBeforeEach);
+  afterEach(cleanUpAfterEach);
 
   it("can create room", async () => {
     const payload = {
@@ -123,8 +112,8 @@ describe("Create room API", () => {
 });
 
 describe("Join room API", () => {
-  beforeEach(setUp);
-  afterEach(tearDown);
+  beforeEach(arrangeBeforeEach);
+  afterEach(cleanUpAfterEach);
 
   it("can join players to rooms", async () => {
     const payload = {
