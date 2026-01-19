@@ -19,7 +19,7 @@ describe("Socket", () => {
 
   // As a player, I want to synchronise my progress with other players
   // so that we can collaborate on the same puzzle.
-  it("synchronizes grid with all players in same room", async (t) => {
+  it("synchronizes grid with all players in same room", async () => {
     // Open room
     const payload = {
       type: "akari",
