@@ -3,7 +3,12 @@ import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import request from "supertest";
 
 import app from "src/app.js";
-import { arrangeBeforeAll, arrangeBeforeEach, cleanUpAfterAll, cleanUpAfterEach } from "./utils/arrange.js";
+import {
+  arrangeBeforeAll,
+  arrangeBeforeEach,
+  cleanUpAfterAll,
+  cleanUpAfterEach,
+} from "./utils/arrange.js";
 import ClientWrapper from "./utils/client-wrapper.js";
 
 describe("Socket", () => {
@@ -17,16 +22,21 @@ describe("Socket", () => {
   it("synchronizes grid with all players in same room", async (t) => {
     // Open room
     const payload = {
-      "type": "akari",
-      "grid": [["."]]
+      type: "akari",
+      grid: [["."]],
     };
 
-    const createRoomRes = await request(app).post("/api/rooms/create").send(payload);
+    const createRoomRes = await request(app)
+      .post("/api/rooms/create")
+      .send(payload);
     const token = createRoomRes.body.token;
 
     // Create client sockets
     const client1 = new ClientWrapper();
     const client2 = new ClientWrapper();
+
+    client1.listenTo("grid:state");
+    client2.listenTo("grid:state");
 
     // Client sockets emit to join room
     client1.emit("room:join", { token });
@@ -34,8 +44,24 @@ describe("Socket", () => {
 
     await Promise.all([
       client1.waitFor("grid:state"),
-      client2.waitFor("grid:state")
+      client2.waitFor("grid:state"),
     ]);
+
+    const expectedGrid = {
+      rows: 1,
+      cols: 1,
+      cells: [
+        {
+          isBlack: false,
+          number: null,
+          input: 2,
+        },
+      ],
+      type: "akari",
+    };
+
+    assert.ok(client1.hasReceived("grid:state", expectedGrid));
+    assert.ok(client2.hasReceived("grid:state", expectedGrid));
 
     client1.listenTo("grid:cellUpdated");
     client2.listenTo("grid:cellUpdated");
@@ -46,12 +72,12 @@ describe("Socket", () => {
     // Wait briefly for broadcasts to propagate
     await Promise.all([
       client1.waitFor("grid:cellUpdated"),
-      client2.waitFor("grid:cellUpdated")
+      client2.waitFor("grid:cellUpdated"),
     ]);
 
     // Assert broadcast reached clients in same room (including sender)
-    assert.ok(client1.hasReceived("grid:cellUpdated", { idx: 0, value: 0 }))
-    assert.ok(client2.hasReceived("grid:cellUpdated", { idx: 0, value: 0 }))
+    assert.ok(client1.hasReceived("grid:cellUpdated", { idx: 0, value: 0 }));
+    assert.ok(client2.hasReceived("grid:cellUpdated", { idx: 0, value: 0 }));
 
     // Cleanup
     client1.close();
