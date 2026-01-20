@@ -1,8 +1,13 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 export default class ClientWrapper {
-  private readonly socket = io("http://localhost:3000");
+  private readonly socket: Socket
   private readonly receivedEvents: Array<{ ev: string; payload: any }> = [];
+
+  constructor() {
+    const url = process.env.TEST_SOCKET_URL;
+    this.socket = io(url);
+  }
 
   emit(event: string, ...args: any[]) {
     return this.socket.emit(event, ...args);

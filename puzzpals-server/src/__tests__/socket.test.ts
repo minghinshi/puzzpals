@@ -8,6 +8,7 @@ import {
   arrangeBeforeEach,
   cleanUpAfterAll,
   cleanUpAfterEach,
+  createClient,
 } from "./utils/arrange.js";
 import ClientWrapper from "./utils/client-wrapper.js";
 
@@ -32,8 +33,8 @@ describe("Socket", () => {
     const token = createRoomRes.body.token;
 
     // Create client sockets
-    const client1 = new ClientWrapper();
-    const client2 = new ClientWrapper();
+    const client1 = createClient();
+    const client2 = createClient();
 
     client1.listenTo("grid:state");
     client2.listenTo("grid:state");
