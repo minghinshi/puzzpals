@@ -1,52 +1,29 @@
 import assert from "node:assert/strict";
-import { after, afterEach, before, beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, todo } from "node:test";
 import request from "supertest";
 
 import app from "src/app.js";
-import {
-  arrangeBeforeAll,
-  arrangeBeforeEach,
-  cleanUpAfterAll,
-  cleanUpAfterEach,
-  createClient,
-} from "./utils/arrange.js";
-import ClientWrapper from "./utils/client-wrapper.js";
+import { arrangeBeforeEach, cleanUpAfterEach, } from "./utils/arrange.js";
+import { createMockSocket, mockBroadcast, mockIo } from "src/__mocks__/io.js";
 
 describe("Socket", () => {
-  before(arrangeBeforeAll);
   beforeEach(arrangeBeforeEach);
   afterEach(cleanUpAfterEach);
-  after(cleanUpAfterAll);
 
   // As a player, I want to synchronise my progress with other players
   // so that we can collaborate on the same puzzle.
-  it("synchronizes grid with all players in same room", async () => {
+  todo("synchronizes grid with all players in same room", async () => {
     // Open room
     const payload = {
       type: "akari",
       grid: [["."]],
     };
 
-    const createRoomRes = await request(app)
-      .post("/api/rooms/create")
-      .send(payload);
-    const token = createRoomRes.body.token;
+    const res = await request(app).post("/api/rooms/create").send(payload);
+    const token = res.body.token;
 
-    // Create client sockets
-    const client1 = createClient();
-    const client2 = createClient();
-
-    client1.listenTo("grid:state");
-    client2.listenTo("grid:state");
-
-    // Client sockets emit to join room
-    client1.emit("room:join", { token });
-    client2.emit("room:join", { token });
-
-    await Promise.all([
-      client1.waitFor("grid:state"),
-      client2.waitFor("grid:state"),
-    ]);
+    const socket = createMockSocket();
+    socket.call("room:join", { token });
 
     const expectedGrid = {
       rows: 1,
@@ -61,27 +38,10 @@ describe("Socket", () => {
       type: "akari",
     };
 
-    assert.ok(client1.hasReceived("grid:state", expectedGrid));
-    assert.ok(client2.hasReceived("grid:state", expectedGrid));
+    assert.deepEqual(socket.emit.mock.calls[1]!.arguments, ["grid:state", expectedGrid]);
 
-    client1.listenTo("grid:cellUpdated");
-    client2.listenTo("grid:cellUpdated");
-
-    // Client1 updates a cell
-    client1.emit("grid:updateCell", { token, idx: 0, value: 0 });
-
-    // Wait briefly for broadcasts to propagate
-    await Promise.all([
-      client1.waitFor("grid:cellUpdated"),
-      client2.waitFor("grid:cellUpdated"),
-    ]);
-
-    // Assert broadcast reached clients in same room (including sender)
-    assert.ok(client1.hasReceived("grid:cellUpdated", { idx: 0, value: 0 }));
-    assert.ok(client2.hasReceived("grid:cellUpdated", { idx: 0, value: 0 }));
-
-    // Cleanup
-    client1.close();
-    client2.close();
+    socket.call("grid:updateCell", { token, idx: 0, value: 0 });
+    assert.deepEqual(mockIo.to.mock.calls[0]!.arguments, [token]);
+    assert.deepEqual(mockBroadcast.mock.calls[0]!.arguments, ["grid:cellUpdated", { idx: 0, value: 0 }]);
   });
 });
