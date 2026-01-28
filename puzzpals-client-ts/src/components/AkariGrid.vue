@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUnmount, ref, watch, type Ref } from "vue";
+import { nextTick, onBeforeMount, onBeforeUnmount, ref, watch, type Ref } from "vue";
 
 import AkariCell from "@/components/AkariCell.vue";
 import Cell from "@/models/Cell";
@@ -159,8 +159,12 @@ function onBulbChanged(modifiedCell: Cell) {
 
   // Check victory
   if (!hasWon && cells.value.every(cell => cell.isRuleSatisfied)) {
-    alert("Congratulations! You have solved the puzzle.");
     hasWon = true;
+    nextTick(() => {
+      setTimeout(() => {
+        alert("Congratulations! You have solved the puzzle.");
+      }, 0);
+    });
   }
 }
 
