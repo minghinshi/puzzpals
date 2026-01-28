@@ -1,5 +1,5 @@
 import { closeDb, initDb } from "src/db.js";
-import { __resetForTests } from "src/memorystore.js";
+import { __resetForTests, stopAutosave } from "src/memorystore.js";
 import { init } from "src/socket.js";
 import { mockIo } from 'src/__mocks__/io.js';
 
@@ -12,6 +12,7 @@ export function arrangeBeforeEach() {
 }
 
 export function cleanUpAfterEach() {
+  stopAutosave();
   closeDb();
   __resetForTests();
 }
