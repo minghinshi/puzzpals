@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUnmount, ref, watch, type Ref } from "vue";
+import { nextTick, onBeforeMount, onBeforeUnmount, ref, watch, type Ref } from "vue";
 
 import AkariCell from "@/components/AkariCell.vue";
 import Cell from "@/models/Cell";
@@ -36,7 +36,7 @@ const cells: Ref<Cell[]> = ref([]);
 
 const rows = props.initialGridState.rows;
 const cols = props.initialGridState.cols;
-let hasWon = false;
+const hasWon = ref(false);
 
 // Undo / Redo functionality
 const MAX_UNDO = 300;
@@ -158,9 +158,8 @@ function onBulbChanged(modifiedCell: Cell) {
   }
 
   // Check victory
-  if (!hasWon && cells.value.every(cell => cell.isRuleSatisfied)) {
-    alert("Congratulations! You have solved the puzzle.");
-    hasWon = true;
+  if (!hasWon.value && cells.value.every(cell => cell.isRuleSatisfied)) {
+    hasWon.value = true;
   }
 }
 
@@ -199,6 +198,14 @@ onBeforeMount(() => {
   });
 
   window.addEventListener('keydown', keyboardListener);
+});
+
+watch(hasWon, async (won) => {
+  // I have seriously no idea why setTimeout is necessary
+  if (won) {
+    await nextTick();
+    setTimeout(() => alert("Win"), 0);
+  }
 });
 
 onBeforeUnmount(() => {
