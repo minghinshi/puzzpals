@@ -2,6 +2,7 @@
   Upload file:
   <input ref="fileInput" type="file" name="avatar" accept=".json" />
   <button @click="uploadFile">Upload</button>
+  <button @click="openEditor">Open Editor</button>
 </template>
 
 <script setup lang="ts">
@@ -58,5 +59,9 @@ async function uploadFile() {
     router.push(`/room/${res.data.token}`);
   }
 
+}
+
+function openEditor() {
+  router.push('/editor');
 }
 </script>
