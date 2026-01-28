@@ -5,7 +5,7 @@ import request from "supertest";
 import app from "src/app.js";
 import { arrangeBeforeEach, cleanUpAfterEach, } from "./utils/arrange.js";
 import { createMockSocket, mockBroadcast, mockIo } from "src/__mocks__/io.js";
-import { __resetForTests, startAutosave } from "src/memorystore.js";
+import { __clearForTests, startAutosave } from "src/memorystore.js";
 
 function assertEmit(actual: any[], expectedEvent: string, ...expectedPayload: any[]) {
   assert.equal(actual[0], expectedEvent);
@@ -65,7 +65,7 @@ describe("Socket", () => {
     t.mock.timers.tick(60 * 1000);
 
     // "Shut down" the server, wiping memory
-    __resetForTests();
+    __clearForTests();
 
     const socket = createMockSocket();
     socket.call("room:join", { token });

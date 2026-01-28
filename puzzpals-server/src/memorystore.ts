@@ -89,6 +89,6 @@ function autosave() {
 }
 
 // For tests only!
-export function __resetForTests() {
+export function __clearForTests() {
     store.clear();
 }
