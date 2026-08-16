@@ -315,7 +315,15 @@ function initiateSocket() {
     }
   });
 
-  socket.on("chat:messageNew", (msgBlock) => {
+  // socket.on('chat:records', (history) => {
+  //   if (chatComponent.value === null) {
+  //     throw new Error("Chat Block is missing");
+  //   }
+  //   chatState.value.messages.splice(0, chatState.value.messages.length, ...history);
+  //   chatComponent.value.scrollToBottom();
+  // });
+
+  socket.on("chat:messageSent", (msgBlock) => {
     if (chatComponent.value === null) {
       throw new Error("Chat Block is missing");
     }
