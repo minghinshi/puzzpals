@@ -125,7 +125,7 @@ describe("chat:newMessage", () => {
 
     // Assert message is broadcast
     expect(mockIo.to).toHaveBeenCalledWith(token);
-    expect(mockBroadcast).toHaveBeenCalledWith("chat:messageNew", {
+    expect(mockBroadcast).toHaveBeenCalledWith("chat:messageSent", {
       user,
       msgtext,
       timestamp: 0,

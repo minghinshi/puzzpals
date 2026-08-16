@@ -163,7 +163,7 @@ describe("RoomPage", () => {
     await nextTick();
 
     // Receive "Hello, world!" from another user
-    socket.call("chat:messageNew", message);
+    socket.call("chat:messageSent", message);
     await nextTick();
 
     // Assert message shown
